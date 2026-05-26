@@ -19,12 +19,10 @@ Each entry:
 
 ## Architecture & Pipeline
 
-[First arch decision goes here. Example structure:]
-
-### YYYY-MM-DD — [Decision in one line]
-- **Why:** [reasoning, including alternatives considered]
-- **Scope:** [global / file / deliverable / etc.]
-- **Do not:** [anti-instruction, if applicable]
+### 2026-05-26 — Do not start building until problem validation conversation is complete
+- **Why:** /office-hours revealed no direct contact with anyone who's lived a major retailer launch. The brief's assumptions (chargeback rates, payment terms, retailer-specific cost parameters, decision-process) need one real conversation to confirm before investing 2-3 weeks of build time. Starting without validation risks building the wrong thing — wrong format, wrong assumptions, wrong primary goal.
+- **Scope:** Global — applies to all build work on this project
+- **Do not:** Start coding the financial model, UI, or Excel model until the validation conversation has happened and findings are logged in HANDOFF.md.
 
 ---
 
