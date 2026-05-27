@@ -318,3 +318,154 @@ h2 {
   .comparison-value { font-size: 36px; }
   #cashflow-chart { height: 300px; }
 }
+
+/* ── Case study ────────────────────────────────────────────── */
+.cs-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-red);
+  margin-bottom: 8px;
+}
+
+.cs-headline {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: 12px;
+}
+
+.cs-setup {
+  font-size: 17px;
+  color: var(--color-text-muted);
+  max-width: 660px;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+/* Gap card — same dark card pattern as comparison panel */
+.cs-gap-card {
+  background: var(--color-dark-card);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 0 32px;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.cs-gap-divider {
+  background: rgba(255,255,255,0.12);
+  height: 100%;
+  min-height: 60px;
+}
+
+.cs-gap-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cs-gap-label {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9a9a9a;
+}
+
+.cs-gap-value {
+  font-family: var(--font-serif);
+  font-size: 48px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.cs-gap-value--red { color: var(--color-red); }
+
+.cs-gap-sub {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: #9a9a9a;
+}
+
+/* Table — Economist style */
+.cs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.cs-table thead tr {
+  border-bottom: 2px solid var(--color-text);
+}
+
+.cs-table th {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  padding: 8px 0;
+  text-align: left;
+}
+
+.cs-table tbody tr {
+  border-bottom: 1px solid var(--color-gridline);
+}
+
+.cs-table tbody tr:last-child { border-bottom: none; }
+
+.cs-table-total {
+  border-top: 2px solid var(--color-text) !important;
+  border-bottom: none !important;
+}
+
+.cs-table td {
+  font-family: var(--font-sans);
+  padding: 10px 0;
+  vertical-align: top;
+}
+
+.cs-table-amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.cs-positive { color: var(--color-text); }
+.cs-negative { color: var(--color-red); }
+
+.cs-footnote {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+}
+
+.cs-insight {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--color-text);
+  max-width: 660px;
+  border-left: 3px solid var(--color-gridline);
+  padding-left: 16px;
+  margin-top: 16px;
+}
+
+/* Case study responsive */
+@media (max-width: 640px) {
+  .cs-gap-card {
+    grid-template-columns: 1fr;
+    gap: 24px 0;
+  }
+  .cs-gap-divider { display: none; }
+  .cs-gap-value { font-size: 36px; }
+}
