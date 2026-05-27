@@ -212,8 +212,9 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
     const panel = document.getElementById('results-panel');
     panel.classList.add('visible');
 
-    // Enable scenario buttons
+    // Enable scenario and compare buttons
     document.querySelectorAll('.btn-scenario').forEach(b => b.disabled = false);
+    document.getElementById('compare-btn').disabled = false;
 
     // Render scenario, then scroll after Plotly draw completes
     await renderScenario(activeScenario);
@@ -240,6 +241,93 @@ document.querySelectorAll('.btn-scenario').forEach(btn => {
   btn.addEventListener('click', () => {
     if (currentData) renderScenario(btn.dataset.scenario);
   });
+});
+
+// ── Retailer comparison table ──────────────────────────────────────────────
+function renderCompareTable(data) {
+  const tbody = document.getElementById('compare-tbody');
+  tbody.innerHTML = '';
+  data.retailers.forEach(r => {
+    const tr = document.createElement('tr');
+    const breakEven = r.break_even_month !== null ? `Month ${r.break_even_month}` : '—';
+    const troughClass = r.trough_value < 0 ? ' class="negative"' : '';
+    const netClass = r.net_cash_impact_year1 < 0 ? ' class="negative"' : '';
+    tr.innerHTML = `
+      <td>${r.label}</td>
+      <td${troughClass}>${formatCurrency(r.trough_value)}</td>
+      <td>Month ${r.trough_month}</td>
+      <td>${breakEven}</td>
+      <td${netClass}>${formatCurrency(r.net_cash_impact_year1)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('compare-section').style.display = '';
+}
+
+document.getElementById('compare-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('compare-btn');
+  if (btn.disabled) return;
+
+  const errorEl = document.getElementById('form-error');
+  errorEl.textContent = '';
+
+  const doors    = parseInt(document.getElementById('doors').value, 10);
+  const skus     = parseInt(document.getElementById('skus').value, 10);
+  const price    = parseFloat(document.getElementById('unit_price_wholesale').value);
+  const cogs     = parseFloat(document.getElementById('cogs_per_unit').value);
+  const velocity = parseFloat(document.getElementById('velocity').value);
+  const brokerRaw = document.getElementById('broker_projection').value;
+  const broker   = brokerRaw ? parseFloat(brokerRaw) : null;
+
+  if (!doors || !skus || !price || !cogs || !velocity) {
+    errorEl.textContent = 'Please fill in all required fields before comparing.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Comparing…';
+
+  const payload = {
+    doors, skus,
+    unit_price_wholesale: price,
+    cogs_per_unit: cogs,
+    velocity_units_per_door_per_week: velocity,
+  };
+  if (broker !== null) payload.broker_projection_year1 = broker;
+
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), 30_000);
+
+  try {
+    const res = await fetch('/api/compare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const detail = Array.isArray(err.detail)
+        ? err.detail.map(d => d.msg).join('; ')
+        : (err.detail || `Server error (${res.status})`);
+      errorEl.textContent = detail;
+      return;
+    }
+
+    renderCompareTable(await res.json());
+
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      errorEl.textContent = 'Request timed out — please try again.';
+    } else {
+      errorEl.textContent = 'Network error — is the server running?';
+    }
+  } finally {
+    clearTimeout(timeoutId);
+    btn.disabled = false;
+    btn.textContent = 'Compare Retailers';
+  }
 });
 
 // ── Excel download ─────────────────────────────────────────────────────────
