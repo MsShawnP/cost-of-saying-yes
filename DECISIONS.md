@@ -23,12 +23,26 @@ Each entry:
 - **Why:** /office-hours revealed no direct contact with anyone who's lived a major retailer launch. The brief's assumptions (chargeback rates, payment terms, retailer-specific cost parameters, decision-process) need one real conversation to confirm before investing 2-3 weeks of build time. Starting without validation risks building the wrong thing — wrong format, wrong assumptions, wrong primary goal.
 - **Scope:** Global — applies to all build work on this project
 - **Do not:** Start coding the financial model, UI, or Excel model until the validation conversation has happened and findings are logged in HANDOFF.md.
+- **Status:** Resolved — validated by $28M specialty food operator (maple syrup brand). Numbers confirmed credible. Build gates passed.
+
+### 2026-05-26 — Use FastAPI (not Flask) for the Python backend
+- **Why:** FastAPI gives automatic API docs, cleaner JSON handling, and less boilerplate than Flask. Flask adds no value for this use case — it's a simple API serving a single-page frontend. FastAPI is the better default for new Python API projects.
+- **Scope:** app.py and all backend route definitions
+- **Do not:** Use Flask. Do not introduce both — pick one and stay consistent.
+
+### 2026-05-26 — Use Plotly.js (not D3) for the cash flow chart
+- **Why:** Plotly.js produces CFO-quality charts out of the box with minimal custom JS. D3 would give more control but adds days of work for marginal visual gain on a solo 2–3 week build. The centerpiece chart is a line chart showing cumulative cash position — Plotly handles this cleanly.
+- **Scope:** All charts in the HTML/JS frontend
+- **Do not:** Use D3. Do not use Chart.js (insufficient control for the Lailara design system tokens).
 
 ---
 
 ## Data & Schema
 
-[Decisions about data sources, schemas, transformations]
+### 2026-05-26 — Python model returns a defined JSON contract to the frontend
+- **Why:** The deduction lag model is stateful across months — Month 3's cash receipt depends on Month 1's invoice minus Month 1–2 deductions. Defining the contract before writing frontend code prevents having to reshape the data structure mid-build.
+- **Scope:** API response from app.py to index.html
+- **Do not:** Start writing frontend chart code before the JSON contract is defined and agreed on. The contract must include at minimum: months array, gross_revenue, cash_received, cumulative_cash_position, break_even_month.
 
 ---
 

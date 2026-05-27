@@ -26,8 +26,10 @@ In 90 days: at least 3 inbound inquiries referencing the tool, OR at least 1 Ret
 Work in vertical slices — one feature end-to-end before moving to the next.
 
 **Slice 1 — Core financial model (Python)**
+- [ ] Define JSON contract: what the Python model returns to the frontend (months, gross_revenue, cash_received, cumulative_cash_position, break_even_month) — do this before any frontend work
 - [ ] Build month-by-month cash flow model engine in Python: invoice generation, payment terms lag, deduction netting (trade spend, chargebacks, slotting), ops overhead
 - [ ] Implement deduction lag correctly: decouple invoice date from cash receipt date (60–90 day gap with netting)
+- [ ] Add input validation: guard against velocity=0, COGS > price, negative inputs, missing required fields
 - [ ] Add retailer parameter defaults: Walmart and Whole Foods/UNFI to start
 - [ ] Validate Cinderhaven numbers: 4 SKUs, 1,200 Walmart doors, realistic velocity and cost inputs from the brief
 - [ ] Write unit tests for core calculation: gross revenue, deductions, net cash, break-even month

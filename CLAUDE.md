@@ -9,7 +9,7 @@ A CFO-credible interactive tool that models the actual first-year economics of a
 ## Stack and tools
 
 - Primary language: Python (backend model) + HTML/JS (frontend)
-- Key packages: Python — openpyxl (Excel export), Flask or FastAPI (API layer); JS — Plotly.js (charts)
+- Key packages: Python — openpyxl (Excel export), FastAPI (API layer), uvicorn (server); JS — Plotly.js (charts)
 - Database: none
 - Entry point: app.py (Python backend), index.html (frontend)
 - Hosting: Fly.io
