@@ -1,0 +1,320 @@
+/* Lailara Design System v2 — cost-of-saying-yes */
+
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/fonts/playfair-display-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/fonts/playfair-display-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('/fonts/source-sans-3-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('/fonts/source-sans-3-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Design tokens ─────────────────────────────────────────── */
+:root {
+  --color-canvas:      #f5f3ee;
+  --color-text:        #333333;
+  --color-text-muted:  #595959;
+  --color-gridline:    #d9d9d9;
+  --color-reference:   #666666;
+  --color-navy:        #1f2e7a;
+  --color-navy-hover:  #141e52;
+  --color-red:         #cc100a;
+  --color-ink:         #0d0d0d;
+  --color-dark-card:   #1a1a1a;
+  --color-teal:        #158f75;
+
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-sans:  'Source Sans 3', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+
+  --content-width: 900px;
+  --radius: 2px;
+}
+
+/* ── Reset & base ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+/* ── Layout ────────────────────────────────────────────────── */
+.container {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+section { margin-bottom: 60px; }
+
+/* ── Typography ────────────────────────────────────────────── */
+h1 {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: 16px;
+}
+
+.brand-name {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+
+.brand-subtitle {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.section-intro {
+  font-size: 17px;
+  color: var(--color-text-muted);
+  max-width: 660px;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.site-header {
+  border-bottom: 1px solid var(--color-gridline);
+  padding-bottom: 24px;
+  margin-bottom: 48px;
+}
+
+/* ── Input form ────────────────────────────────────────────── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 32px;
+  margin-bottom: 28px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.form-field .field-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.form-field input,
+.form-field select {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-gridline);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  border-color: var(--color-navy);
+}
+
+.form-field input:focus-visible,
+.form-field select:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.btn-primary {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  background: var(--color-navy);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.btn-primary:hover { background: var(--color-navy-hover); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-primary:focus-visible { outline: 2px solid var(--color-text); outline-offset: 2px; }
+
+.scenario-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.btn-scenario {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border: 1.5px solid var(--color-navy);
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-navy);
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.btn-scenario.active {
+  background: var(--color-navy);
+  color: #fff;
+}
+
+.btn-scenario:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Results panel ─────────────────────────────────────────── */
+#results-panel { display: none; }
+#results-panel.visible { display: block; }
+
+/* ── Chart ─────────────────────────────────────────────────── */
+#cashflow-chart {
+  width: 100%;
+  height: 420px;
+  margin-bottom: 32px;
+}
+
+/* ── Comparison panel (dark card) ──────────────────────────── */
+.comparison-panel {
+  background: var(--color-dark-card);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 0 32px;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.comparison-divider {
+  background: rgba(255,255,255,0.12);
+  height: 100%;
+  min-height: 60px;
+}
+
+.comparison-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.comparison-label {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9a9a9a;
+}
+
+.comparison-value {
+  font-family: var(--font-serif);
+  font-size: 48px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.comparison-value.negative { color: var(--color-red); }
+
+.comparison-sub {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: #9a9a9a;
+}
+
+/* ── Download button ───────────────────────────────────────── */
+.download-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-gridline);
+}
+
+.btn-download {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--color-navy);
+  border: 1.5px solid var(--color-navy);
+  border-radius: var(--radius);
+  padding: 10px 24px;
+  text-decoration: none;
+  transition: background 150ms ease, color 150ms ease;
+  display: inline-block;
+}
+
+.btn-download:hover {
+  background: var(--color-navy);
+  color: #fff;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .container { padding: 32px 16px; }
+  .brand-name { font-size: 20px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .comparison-panel {
+    grid-template-columns: 1fr;
+    gap: 24px 0;
+  }
+  .comparison-divider { display: none; }
+  .comparison-value { font-size: 36px; }
+  #cashflow-chart { height: 300px; }
+}
