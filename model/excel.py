@@ -12,12 +12,9 @@ Design rules:
   - freeze_panes = "A2" on every sheet (freezes header row only)
 """
 
-from __future__ import annotations
 from io import BytesIO
 from openpyxl import Workbook
-from openpyxl.styles import (
-    NamedStyle, Font, PatternFill, Alignment, Border, Side
-)
+from openpyxl.styles import NamedStyle, Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
 

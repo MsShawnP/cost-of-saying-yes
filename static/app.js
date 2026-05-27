@@ -5,13 +5,20 @@
 // ── State ──────────────────────────────────────────────────────────────────
 let currentData = null;        // all three scenario results from the API
 let activeScenario = 'realistic';
+let chartInitialized = false;       // tracks whether Plotly.newPlot has been called
+let resizeListenerAttached = false; // ensures the resize listener is added exactly once
 
 // ── Currency formatter ─────────────────────────────────────────────────────
 function formatCurrency(n) {
   const abs = Math.abs(n);
   const sign = n < 0 ? '-' : '';
   if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`;
-  if (abs >= 1_000)     return `${sign}$${(abs / 1_000).toFixed(0)}K`;
+  if (abs >= 1_000) {
+    const kVal = (abs / 1_000).toFixed(0);
+    // Guard against rounding up to 1000 (e.g. $999,500 → "$1000K")
+    if (Number(kVal) >= 1000) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`;
+    return `${sign}$${kVal}K`;
+  }
   return `${sign}$${abs.toFixed(0)}`;
 }
 
@@ -34,7 +41,9 @@ function buildLayout(breakEvenMonth, troughMonth, troughValue) {
     });
   }
 
-  if (troughValue !== undefined && troughMonth !== undefined) {
+  // Only annotate the trough when the position is negative — a positive
+  // minimum is not a meaningful trough for this tool's audience.
+  if (troughValue !== undefined && troughMonth !== undefined && troughValue < 0) {
     annotations.push({
       x: troughMonth, y: troughValue, xref: 'x', yref: 'y',
       text: `Peak trough<br>${formatCurrency(troughValue)}`,
@@ -88,10 +97,13 @@ function renderChart(scenario) {
   const layout = buildLayout(data.break_even_month, data.trough_month, data.trough_value);
   const config = { responsive: true, displaylogo: false, displayModeBar: false };
 
-  if (!currentData._chartInitialized) {
+  if (!chartInitialized) {
     Plotly.newPlot('cashflow-chart', [trace], layout, config);
-    currentData._chartInitialized = true;
-    window.addEventListener('resize', () => Plotly.Plots.resize('cashflow-chart'));
+    chartInitialized = true;
+    if (!resizeListenerAttached) {
+      window.addEventListener('resize', () => Plotly.Plots.resize('cashflow-chart'));
+      resizeListenerAttached = true;
+    }
   } else {
     Plotly.react('cashflow-chart', [trace], layout, config);
   }
@@ -127,6 +139,10 @@ function renderScenario(scenario) {
 document.getElementById('input-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('calculate-btn');
+
+  // Guard against Enter-key re-entry while a fetch is already in flight
+  if (btn.disabled) return;
+
   const errorEl = document.getElementById('form-error');
   errorEl.textContent = '';
 
@@ -170,12 +186,15 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      errorEl.textContent = err.detail?.[0]?.msg || `Server error (${res.status})`;
+      const detail = Array.isArray(err.detail)
+        ? err.detail.map(d => d.msg).join('; ')
+        : (err.detail || `Server error (${res.status})`);
+      errorEl.textContent = detail;
       return;
     }
 
     currentData = await res.json();
-    currentData._chartInitialized = false;
+    chartInitialized = false;  // next renderChart will call Plotly.newPlot for fresh layout
 
     // Show results panel
     const panel = document.getElementById('results-panel');
@@ -184,8 +203,8 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
     // Enable scenario buttons
     document.querySelectorAll('.btn-scenario').forEach(b => b.disabled = false);
 
-    // Render default scenario
-    renderScenario('realistic');
+    // Render the scenario the user last had selected (preserves choice across recalculations)
+    renderScenario(activeScenario);
 
     // Smooth scroll to results
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' });

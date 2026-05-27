@@ -1,5 +1,7 @@
 """Retailer parameter defaults and the Cinderhaven validated fixture."""
 
+WEEKS_PER_MONTH = 4.33  # average weeks per calendar month
+
 RETAILER_DEFAULTS = {
     "walmart": {
         "payment_lag_months": 2,

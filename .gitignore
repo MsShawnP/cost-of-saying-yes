@@ -1,15 +1,3 @@
-# Rendered output
-*.html
-_freeze/
-_site/
-
-# R
-.Rproj.user/
-.Rhistory
-.RData
-.Rdata
-renv/library/
-
 # Python
 __pycache__/
 *.pyc

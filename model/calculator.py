@@ -5,10 +5,8 @@ Invoice date is decoupled from cash receipt date. This creates the cash trough
 that makes the "yes to a major retailer" decision dangerous without a working capital plan.
 """
 
-from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional
-from model.defaults import RETAILER_DEFAULTS, SCENARIO_MULTIPLIERS
+from model.defaults import RETAILER_DEFAULTS, SCENARIO_MULTIPLIERS, WEEKS_PER_MONTH
 
 
 @dataclass
@@ -18,8 +16,8 @@ class ScenarioResult:
     cash_received: list[float]
     deductions: list[float]
     cumulative_cash_position: list[float]
-    break_even_month: Optional[int]   # 1-indexed month number, or None
-    trough_month: int                  # 1-indexed
+    break_even_month: int | None   # 1-indexed month number, or None
+    trough_month: int               # 1-indexed
     trough_value: float
     summary: dict
 
@@ -66,7 +64,7 @@ def calculate_scenario(
     cash_recv = []
     cumulative = []
 
-    units_per_month = doors * skus * velocity * 4.33
+    units_per_month = doors * skus * velocity * WEEKS_PER_MONTH
 
     for m in range(months_count):
         gr = units_per_month * unit_price_wholesale

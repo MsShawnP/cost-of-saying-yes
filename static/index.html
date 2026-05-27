@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retailer Launch Cost Model — Lailara LLC</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="brand-name">Lailara LLC</div>
+    <div class="brand-subtitle">Retailer Launch Economics</div>
+  </header>
+
+  <!-- Tool section -->
+  <section id="tool-section">
+    <h2>What does saying yes actually cost?</h2>
+    <p class="section-intro">
+      Model the first-year economics of a major retailer launch — slotting fees, free fills,
+      deduction erosion, and the cash conversion gap that revenue projections hide.
+    </p>
+
+    <!-- Input form -->
+    <form id="input-form" novalidate>
+      <div class="form-grid">
+
+        <div class="form-field">
+          <label for="retailer">Retailer</label>
+          <select id="retailer" name="retailer">
+            <option value="walmart">Walmart</option>
+            <option value="whole_foods">Whole Foods / UNFI</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="doors">Number of Doors</label>
+          <input type="number" id="doors" name="doors" min="1" step="1"
+                 placeholder="e.g. 1200" required>
+          <span class="field-hint">Stores stocking your product</span>
+        </div>
+
+        <div class="form-field">
+          <label for="skus">SKU Count</label>
+          <input type="number" id="skus" name="skus" min="1" step="1"
+                 placeholder="e.g. 4" required>
+          <span class="field-hint">Distinct products (flavors, sizes)</span>
+        </div>
+
+        <div class="form-field">
+          <label for="unit_price_wholesale">Wholesale Price / Unit ($)</label>
+          <input type="number" id="unit_price_wholesale" name="unit_price_wholesale"
+                 min="0.01" step="0.01" placeholder="e.g. 1.00" required>
+          <span class="field-hint">What the retailer pays you</span>
+        </div>
+
+        <div class="form-field">
+          <label for="cogs_per_unit">COGS / Unit ($)</label>
+          <input type="number" id="cogs_per_unit" name="cogs_per_unit"
+                 min="0.01" step="0.01" placeholder="e.g. 0.45" required>
+          <span class="field-hint">Your landed cost per unit</span>
+        </div>
+
+        <div class="form-field">
+          <label for="velocity">Velocity (units / door / week)</label>
+          <input type="number" id="velocity" name="velocity"
+                 min="0.01" step="0.1" placeholder="e.g. 2.0" required>
+          <span class="field-hint">Expected weekly sell-through per store</span>
+        </div>
+
+        <div class="form-field">
+          <label for="broker_projection">Broker's Year 1 Projection ($)</label>
+          <input type="number" id="broker_projection" name="broker_projection"
+                 min="0" step="100" placeholder="e.g. 499200">
+          <span class="field-hint">Optional — for the reality check comparison</span>
+        </div>
+
+      </div>
+
+      <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+        <button type="submit" class="btn-primary" id="calculate-btn">
+          Calculate
+        </button>
+        <span id="form-error" style="color:var(--color-red);font-size:14px;"></span>
+      </div>
+    </form>
+  </section>
+
+  <!-- Results panel (hidden until first calculation) -->
+  <section id="results-panel">
+
+    <!-- Comparison panel -->
+    <div class="comparison-panel">
+      <div class="comparison-col">
+        <div class="comparison-label">Broker's Projection</div>
+        <div class="comparison-value" id="broker-projection-value">—</div>
+        <div class="comparison-sub">Year 1 gross revenue</div>
+      </div>
+      <div class="comparison-divider"></div>
+      <div class="comparison-col">
+        <div class="comparison-label">Net Cash Impact</div>
+        <div class="comparison-value" id="net-cash-value">—</div>
+        <div class="comparison-sub">After all costs, year 1</div>
+      </div>
+    </div>
+
+    <!-- Scenario toggle -->
+    <div class="scenario-toggle">
+      <button class="btn-scenario active" data-scenario="realistic" id="btn-realistic" disabled>Realistic</button>
+      <button class="btn-scenario" data-scenario="optimistic" id="btn-optimistic" disabled>Optimistic</button>
+      <button class="btn-scenario" data-scenario="pessimistic" id="btn-pessimistic" disabled>Pessimistic</button>
+    </div>
+
+    <!-- Chart -->
+    <div id="cashflow-chart"></div>
+
+    <!-- Download -->
+    <div class="download-section">
+      <a href="/api/download/excel" class="btn-download" id="download-btn">
+        Download Excel Model
+      </a>
+      <span style="font-size:14px; color:var(--color-text-muted);">
+        CFO-grade workbook with all three scenarios
+      </span>
+    </div>
+
+  </section>
+
+  <!-- Case study — Cinderhaven Walmart -->
+  <section id="case-study-section">
+    <div class="cs-eyebrow">Case Study</div>
+    <h2 class="cs-headline">Cinderhaven Provisions: The $499K Question</h2>
+    <p class="cs-setup">
+      A specialty food brand with four SKUs accepts a Walmart invitation to
+      1,200 doors. The broker projects $499,200 in Year 1 revenue. The actual
+      net cash impact after all costs and collection delays: −$36,320.
+    </p>
+
+    <!-- Gap callout — dark card -->
+    <div class="cs-gap-card">
+      <div class="cs-gap-col">
+        <div class="cs-gap-label">Broker's Projection</div>
+        <div class="cs-gap-value">$499,200</div>
+        <div class="cs-gap-sub">Year 1 gross revenue</div>
+      </div>
+      <div class="cs-gap-divider"></div>
+      <div class="cs-gap-col">
+        <div class="cs-gap-label">Net Cash Impact</div>
+        <div class="cs-gap-value cs-gap-value--red">−$36,320</div>
+        <div class="cs-gap-sub">After all costs, Year 1</div>
+      </div>
+    </div>
+
+    <!-- Numbers table -->
+    <table class="cs-table">
+      <thead>
+        <tr>
+          <th>Line Item</th>
+          <th class="cs-table-amount">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Gross Year 1 Revenue</td>
+          <td class="cs-table-amount cs-positive">$499,200</td>
+        </tr>
+        <tr>
+          <td>Upfront Allowances (New Store)</td>
+          <td class="cs-table-amount cs-negative">−$48,000</td>
+        </tr>
+        <tr>
+          <td>Free Fills (1 case / SKU / door)</td>
+          <td class="cs-table-amount cs-negative">−$86,400</td>
+        </tr>
+        <tr>
+          <td>Trade Spend (12% of gross)</td>
+          <td class="cs-table-amount cs-negative">−$59,904</td>
+        </tr>
+        <tr>
+          <td>Learning-Curve Chargebacks (months 1–3)</td>
+          <td class="cs-table-amount cs-negative">−$14,976</td>
+        </tr>
+        <tr>
+          <td>Ongoing Deductions (1% steady-state)</td>
+          <td class="cs-table-amount cs-negative">−$4,992</td>
+        </tr>
+        <tr>
+          <td>Broker Commission (5%)</td>
+          <td class="cs-table-amount cs-negative">−$24,960</td>
+        </tr>
+        <tr>
+          <td>COGS</td>
+          <td class="cs-table-amount cs-negative">−$224,640</td>
+        </tr>
+        <tr class="cs-table-total">
+          <td><strong>Net Year 1 Cash Impact</strong></td>
+          <td class="cs-table-amount cs-negative"><strong>−$36,320</strong></td>
+        </tr>
+        <tr class="cs-table-total">
+          <td><strong>Peak Cash Trough (Month 4)</strong></td>
+          <td class="cs-table-amount cs-negative"><strong>−$165,000</strong></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="cs-footnote">
+      Source: Lailara LLC analysis; inputs confirmed by a $28M specialty food operator.
+      4 SKUs, 1,200 Walmart doors, wholesale price $1.00, velocity 2 units/door/week.
+    </p>
+
+    <!-- Insight paragraph -->
+    <p class="cs-insight">
+      Revenue recognition and cash collection are not the same thing. The brand
+      invoices $41,600 in Month 1, but with Walmart's 60-day payment terms and
+      the deduction netting that accompanies first-shipment allowances and free
+      fills, no cash arrives until Month 3. Meanwhile, COGS and operating overhead
+      flow out every month. The result is a $165,000 working capital requirement
+      at the trough — a number that does not appear in the broker's projection,
+      and one that has surprised better-capitalized brands than Cinderhaven.
+    </p>
+  </section>
+
+</div>
+
+<script src="/plotly-basic.min.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
