@@ -59,3 +59,15 @@ work.
 **Next:** Run /ce:work to start U1 — project scaffold (requirements.txt, app.py skeleton, Dockerfile, fly.toml).
 
 ---
+
+## 2026-05-27 12:45
+
+**What changed:** All 9 implementation units built and deployed — tool is live at https://cost-of-saying-yes.fly.dev/
+
+**Why:** Full /ce:work session executed serially U1→U9. Backend (FastAPI + calculator + Excel), frontend (HTML/CSS/JS + Plotly.js + Lailara tokens), and Fly.io deployment all completed in one session.
+
+**State:** 28/28 tests passing. All three scenarios return correct data. Excel download streams a real 4-tab workbook. Cinderhaven case study renders as static HTML. One known gap: model trough falls at month 2, Cinderhaven validated fixture says month 4 — documented in FAILURES.md, not blocking.
+
+**Next:** Open https://cost-of-saying-yes.fly.dev/ and do a manual walkthrough with real inputs. Then run /wrap to close the arc.
+
+---
