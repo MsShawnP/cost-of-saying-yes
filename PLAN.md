@@ -65,13 +65,13 @@ Work in vertical slices — one feature end-to-end before moving to the next.
 
 ## Definition of done for this arc
 
-- [ ] Core model calculates month-by-month cash flow correctly — deduction lag decoupled from invoice date
-- [ ] Cinderhaven Walmart scenario matches the validated numbers from brief
-- [ ] Chart renders cleanly and shows the cash trough and break-even month
-- [ ] Three scenarios work and produce meaningfully different outputs
-- [ ] Excel downloads and is formatted well enough to hand to a CFO
-- [ ] Unit tests pass for the calculation engine
-- [ ] Deployed and accessible at a public URL
+- [x] Core model calculates month-by-month cash flow correctly — deduction lag decoupled from invoice date
+- [x] Cinderhaven Walmart scenario matches the validated numbers from brief (within 6.5% on trough; discrepancy documented in FAILURES.md)
+- [x] Chart renders cleanly and shows the cash trough and break-even month
+- [x] Three scenarios work and produce meaningfully different outputs
+- [x] Excel downloads and is formatted well enough to hand to a CFO
+- [x] Unit tests pass for the calculation engine (28/28)
+- [x] Deployed and accessible at a public URL — https://cost-of-saying-yes.fly.dev/
 - [ ] Someone other than you can use it without explanation
 
 ---
