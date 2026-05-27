@@ -79,7 +79,34 @@ class ScenarioInput(BaseModel):
         return self.doors * self.skus * self.velocity_units_per_door_per_week * 4.33 * 12 * self.unit_price_wholesale
 
 
-# --- API routes will be added here (U4) ---
+@app.post("/api/calculate")
+def calculate(inp: ScenarioInput):
+    from dataclasses import asdict
+    from model.calculator import calculate_all_scenarios
+
+    results = calculate_all_scenarios(
+        retailer=inp.retailer,
+        doors=inp.doors,
+        skus=inp.skus,
+        unit_price_wholesale=inp.unit_price_wholesale,
+        cogs_per_unit=inp.cogs_per_unit,
+        velocity_units_per_door_per_week=inp.velocity_units_per_door_per_week,
+        broker_projection_year1=inp.effective_broker_projection(),
+    )
+    return {scenario: asdict(result) for scenario, result in results.items()}
+
+
+@app.get("/api/download/excel")
+def download_excel(retailer: str = "walmart", scenario: str = "realistic"):
+    # TODO: replace stub with real Excel builder in U7
+    from fastapi.responses import Response
+    placeholder = b"Excel model coming soon"
+    return Response(
+        content=placeholder,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=retailer-launch-model.xlsx"}
+    )
+
 
 @app.get("/api/health")
 def health():
