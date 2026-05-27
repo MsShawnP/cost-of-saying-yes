@@ -83,3 +83,27 @@ work.
 **Next:** Open the live URL, fill in Cinderhaven inputs (1,200 doors, 4 SKUs, $1.00 wholesale, $0.45 COGS, 2.0 vel), verify chart renders with trough annotation and all three scenarios, verify Excel downloads and opens. If clean, arc is done.
 
 ---
+
+## 2026-05-27 — Manual verification confirmed; arc closed
+
+**What changed:** Manual walkthrough confirmed HTML and Excel work. Arc marked complete (8/8 DoD boxes checked, v0.1.0-mvp tagged and pushed).
+
+**Why:** Final verification step from the previous session wrap.
+
+**State:** Live at https://cost-of-saying-yes.fly.dev/. Arc 1 is done.
+
+**Next:** (none — session ended cleanly)
+
+---
+
+## 2026-05-27 — /ce:review completed; 19 safe_auto fixes applied
+
+**What changed:** 12-reviewer code review run; all safe_auto and one gated_auto fix committed and pushed to main.
+
+**Why:** First structured review of the codebase after the initial build sprint.
+
+**State:** 28/28 tests passing. All fixes pushed (commits b0bb3d9, 6398394). P0 resolved: static/index.html is now tracked in git. Key fixes: retailer validation on Excel endpoint, exception handling in API endpoints, CORS default inverted, health check path corrected, resize listener leak fixed, Excel cost rows now render red.
+
+**Next:** Work the P1 manual backlog — fix vacuous test (test_break_even_month_is_positive_if_set), add tests/test_excel.py, add TestClient HTTP integration tests, create README.md, update PLAN.md task boxes and arc history.
+
+---
