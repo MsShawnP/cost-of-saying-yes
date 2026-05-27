@@ -24,12 +24,12 @@ All four test gaps resolved. `pytest` passes with meaningful coverage of the Exc
 ## Tasks
 
 **Test hardening**
-- [ ] Fix vacuous test: `test_break_even_month_is_positive_if_set` — switch fixture to high-velocity inputs (doors=100, skus=1, price=5.00, cogs=1.00, velocity=20.0, broker=100_000, scenario='optimistic') so the inner assertion actually runs
-- [ ] Add `tests/test_excel.py` — 4 tests: (1) workbook has sheets ['Summary','Realistic','Optimistic','Pessimistic'], (2) `workbook_to_bytes()` returns non-empty bytes, (3) Summary cell B2 equals realistic `gross_revenue_year1`, (4) `break_even_month=None` writes fallback string not a Python `None`
-- [ ] Add TestClient HTTP integration tests to `tests/test_api.py` — POST /api/calculate with valid body returns 200 with keys realistic/optimistic/pessimistic each with `cumulative_cash_position` length 12; `doors=0` returns 422; GET /api/download/excel returns 200 with correct Content-Disposition and Content-Type; omitting `broker_projection_year1` succeeds
+- [x] Fix vacuous test: `test_break_even_month_is_positive_if_set` — switch fixture to high-velocity inputs (doors=100, skus=1, price=5.00, cogs=1.00, velocity=20.0, broker=100_000, scenario='optimistic') so the inner assertion actually runs
+- [x] Add `tests/test_excel.py` — 5 tests: workbook has sheets ['Summary','Realistic','Optimistic','Pessimistic'], `workbook_to_bytes()` returns non-empty bytes, xlsx magic bytes (PK header), Summary cell B2 equals realistic `gross_revenue_year1`, `break_even_month=None` writes fallback string not a Python `None`
+- [x] Add TestClient HTTP integration tests to `tests/test_api.py` — 12 tests covering POST /api/calculate (3 scenarios, 12-month arrays, optional broker, whole_foods), validation rejections (doors=0, COGS>price, invalid retailer), Excel download (200, content-type, content-disposition, invalid retailer 422), health endpoint
 
 **Documentation**
-- [ ] Create `README.md` — what it does (one sentence), how to run locally (`pip install -r requirements.txt && uvicorn app:app --reload`), main tech/stack, live URL
+- [x] Create `README.md` — what it does (one sentence), how to run locally (`pip install -r requirements.txt && uvicorn app:app --reload`), main tech/stack, live URL
 
 ## Out of scope for this arc
 
@@ -40,10 +40,10 @@ All four test gaps resolved. `pytest` passes with meaningful coverage of the Exc
 
 ## Definition of done for this arc
 
-- [ ] `pytest` passes with 0 vacuous tests (verified by checking that the fixed test's assertion branch is actually reached)
-- [ ] `tests/test_excel.py` exists with ≥4 meaningful assertions
-- [ ] `tests/test_api.py` exists with ≥4 HTTP-level integration tests
-- [ ] `README.md` exists and contains: one-sentence description, local run command, stack summary, live URL
+- [x] `pytest` passes with 0 vacuous tests (verified by checking that the fixed test's assertion branch is actually reached)
+- [x] `tests/test_excel.py` exists with ≥4 meaningful assertions (5 delivered)
+- [x] `tests/test_api.py` exists with ≥4 HTTP-level integration tests (12 delivered)
+- [x] `README.md` exists and contains: one-sentence description, local run command, stack summary, live URL
 
 ---
 
