@@ -7,44 +7,70 @@ session. For session-by-session state, see HANDOFF.md.
 
 ## Goal
 
-[One sentence — what "done" looks like for this arc.]
+Ship a CFO-credible, interactive retailer launch cost model — HTML/JS frontend + Python backend — with a Cinderhaven Walmart case study, downloadable Excel model, and a month-by-month cash flow chart that makes the revenue-vs-cash-reality gap impossible to ignore.
 
 ## Why this arc, why now
 
-[One or two sentences. The reason matters when you come back in three
-weeks and wonder why this was the priority.]
+This is the only active project. Problem validated by a $28M specialty food operator. Stack decided. All planning gates passed. Time to build.
 
 ## Business question this arc answers
 
-[One sentence. Direct connection to the project-level business question
-in CLAUDE.md.]
+For a $3M–$20M specialty food brand considering a major retailer: what does saying yes actually cost in the first 12 months, and when does the investment break even?
+
+## Success metric
+
+In 90 days: at least 3 inbound inquiries referencing the tool, OR at least 1 Retailer Launch Economics engagement ($5K–$15K) directly attributed to it.
 
 ## Tasks
 
-Work in vertical slices — one section/feature end-to-end before moving
-to the next. Visualizations get reviewed in their own slice, not
-deferred to a polish phase.
+Work in vertical slices — one feature end-to-end before moving to the next.
 
-- [ ] Specific, scoped, actionable
-- [ ] Each one is a thing Claude Code could plausibly finish in one
-      session
-- [ ] If a task feels too big, break it down before adding it
-- [x] Completed items stay struck or checked, so the trail is visible
+**Slice 1 — Core financial model (Python)**
+- [ ] Build month-by-month cash flow model engine in Python: invoice generation, payment terms lag, deduction netting (trade spend, chargebacks, slotting), ops overhead
+- [ ] Implement deduction lag correctly: decouple invoice date from cash receipt date (60–90 day gap with netting)
+- [ ] Add retailer parameter defaults: Walmart and Whole Foods/UNFI to start
+- [ ] Validate Cinderhaven numbers: 4 SKUs, 1,200 Walmart doors, realistic velocity and cost inputs from the brief
+- [ ] Write unit tests for core calculation: gross revenue, deductions, net cash, break-even month
 
-## Out of scope for this arc
+**Slice 2 — HTML/JS frontend**
+- [ ] Build single-page app: input form (retailer, doors, SKUs, price, COGS, velocity) + results panel
+- [ ] Implement month-by-month cumulative cash flow chart (Plotly or D3) — the centerpiece visual
+- [ ] Add three-scenario toggle: optimistic / realistic / pessimistic
+- [ ] Add "revenue projection vs. cash reality" comparison panel — the killer insight
+- [ ] Apply Lailara design system: canvas background, Chicago navy, HK teal, Playfair/Source Sans 3
 
-- Things explicitly NOT being done in this round
-- Captures the decisions about what to defer
-- Prevents scope creep mid-session
+**Slice 3 — Excel model**
+- [ ] Build CFO-grade Excel via openpyxl: scenario tabs, sensitivity analysis (velocity + deduction rate), formatted for board presentation
+- [ ] Wire Excel download button in the frontend
+
+**Slice 4 — Cinderhaven case study**
+- [ ] Write the Walmart case study narrative using validated numbers
+- [ ] Render as a static section below the interactive tool
+
+**Slice 5 — Polish and deploy**
+- [ ] Mobile responsiveness
+- [ ] Deploy to Fly.io (or equivalent)
+- [ ] Smoke test end-to-end from fresh URL
+
+## Out of scope for this arc (v2)
+
+- Costco-specific mode (dynamic UI, pallet/rotation inputs, rotation cliff scenario)
+- UNFI/KeHE distributor toggle (double cash conversion hit, distributor margin)
+- Board-ready PNG slide export
+- Additional retailers beyond Walmart and Whole Foods
+- Email gating for Excel download
+- Integration with Retail Readiness Scorecard
 
 ## Definition of done for this arc
 
-- [ ] Specific, verifiable conditions
-- [ ] Not "the prose is better" — "every section's executive summary
-      has been reviewed and either approved or marked for domain
-      insertion"
-- [ ] When all of these are checked, the arc is done and a new PLAN.md
-      arc gets defined
+- [ ] Core model calculates month-by-month cash flow correctly — deduction lag decoupled from invoice date
+- [ ] Cinderhaven Walmart scenario matches the validated numbers from brief
+- [ ] Chart renders cleanly and shows the cash trough and break-even month
+- [ ] Three scenarios work and produce meaningfully different outputs
+- [ ] Excel downloads and is formatted well enough to hand to a CFO
+- [ ] Unit tests pass for the calculation engine
+- [ ] Deployed and accessible at a public URL
+- [ ] Someone other than you can use it without explanation
 
 ---
 

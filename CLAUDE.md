@@ -2,18 +2,18 @@
 
 ## What this project is
 
-[One paragraph. What it is, who it's for, what done looks like at the
-highest level. Filled in based on the 95% confidence prompt conversation.]
+A CFO-credible interactive tool that models the actual first-year economics of a major retailer launch for $3M–$20M specialty food brands. The core insight: everyone evaluates the "yes" decision on revenue projections, but nobody models the cost side — slotting fees, free fills, learning-curve chargebacks, deduction erosion, cash conversion delay. The tool makes the invisible cash trough visible with a month-by-month cumulative cash flow chart, a Cinderhaven Walmart case study, and a downloadable CFO-grade Excel model. Done means: deployed, publicly accessible, sharp enough that a real CFO trusts the numbers.
 
 **Business question this project answers:** For a $3M–$20M specialty food brand considering a major retailer (Walmart, Costco, Whole Foods, regional chain): what does saying yes actually cost in the first 12 months, and when does the investment break even?
 
 ## Stack and tools
 
-- Primary language: [your language — e.g., JavaScript, Python, Ruby, etc.]
-- Key packages/libraries: [list the main ones you're using]
-- Database: [if applicable — or remove this line]
-- Entry point: [the main file that starts your project — e.g., index.js, app.py, main.rb]
-- Other tools: [anything else relevant — framework, hosting, etc.]
+- Primary language: Python (backend model) + HTML/JS (frontend)
+- Key packages: Python — openpyxl (Excel export), Flask or FastAPI (API layer); JS — Plotly.js (charts)
+- Database: none
+- Entry point: app.py (Python backend), index.html (frontend)
+- Hosting: Fly.io
+- Design system: Lailara Design System v2 (see ~/projects/active/lailara-design-system/LAILARA_DESIGN_SYSTEM.md)
 
 ## Project files
 
