@@ -107,3 +107,15 @@ work.
 **Next:** Work the P1 manual backlog — fix vacuous test (test_break_even_month_is_positive_if_set), add tests/test_excel.py, add TestClient HTTP integration tests, create README.md, update PLAN.md task boxes and arc history.
 
 ---
+
+## 2026-05-27 — Session wrap (post-review)
+
+**Started from:** Arc 1 complete, tool live at https://cost-of-saying-yes.fly.dev/. Manual verification confirmed. Ran /ce:review.
+
+**Did:** 12-reviewer parallel code review. Applied 19 safe_auto fixes + 1 gated_auto fix (Excel cost fields negated so neg_currency format renders red). Resolved P0: static/index.html was never in git (Quarto .gitignore artifact — `*.html` excluded it). CORS default corrected, health check path fixed, resize listener leak patched.
+
+**State:** 28/28 tests passing. All fixes committed and pushed (b0bb3d9, 6398394, 034e218). No broken states. P1 backlog documented and unstarted.
+
+**Next:** Fix vacuous test (`test_break_even_month_is_positive_if_set`), add `tests/test_excel.py` (4 sheets, workbook_to_bytes, cell value, None break-even fallback), add TestClient HTTP integration tests, create README.md, update PLAN.md task boxes and arc history.
+
+---

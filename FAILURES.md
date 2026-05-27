@@ -55,3 +55,39 @@ quarto" or "scope, scrollytelling, decoration"]
 
 **Tags:** calculator, trough, cinderhaven, deduction-lag, free-fills, units-per-case
 
+### 2026-05-27 — Quarto .gitignore `*.html` pattern silently excluded static/index.html from git
+
+**Attempted:** Track `static/index.html` in git as part of the normal project.
+
+**Why it didn't work:** `.gitignore` was seeded from a Quarto/R project template that contained `*.html` under a "Rendered output" section. For a Quarto project, `.html` files are generated artifacts; for this FastAPI project, `static/index.html` IS the source. Git silently ignored it — a fresh clone would have produced a broken, blank deployment with no visible error.
+
+**What we tried instead:** Removed the entire Quarto/R section (`*.html`, `_freeze/`, `_site/`, `.Rproj.user/`, `.Rhistory`, `.RData`, `renv/library/`) from `.gitignore`, then `git add static/index.html`.
+
+**Status:** Resolved
+
+**Tags:** gitignore, static-files, quarto, git, deployment
+
+### 2026-05-27 — Plotly resize listener accumulated on every form submit
+
+**Attempted:** Reset chart initialization state by setting `currentData._chartInitialized = false` on each form submission so the next `renderChart()` call would use `Plotly.newPlot` instead of `Plotly.react`.
+
+**Why it didn't work:** `currentData` is replaced entirely on each API response. The `_chartInitialized` property was always absent on the new object — the guard never fired, causing a new `window.addEventListener('resize', ...)` to be attached on every chart render. After N submissions, N resize handlers were active simultaneously.
+
+**What we tried instead:** Moved initialization flags to module-level variables (`chartInitialized`, `resizeListenerAttached`) that persist across data refreshes but are scoped to chart DOM state, not API response state.
+
+**Status:** Resolved
+
+**Tags:** javascript, plotly, event-listeners, state-management, resize
+
+### 2026-05-27 — openpyxl `neg_currency` format requires negative values to render cost rows red
+
+**Attempted:** Store cost summary fields (`upfront_investment`, `total_deductions_year1`, `cogs_year1`) as their absolute positive values in the summary dict, relying on the `neg_currency` number format to apply red/parentheses styling in Excel.
+
+**Why it didn't work:** The `neg_currency` format `"$"#,##0;[Red]("$"#,##0)` only applies red color and parentheses to values that are numerically negative. Positive numbers always render in the default black format. CFO-grade output requires cost rows to appear in red — this only works if the values are stored as negative numbers.
+
+**What we tried instead:** Negated the cost fields in the summary dict in `calculator.py` (`-total_deductions`, `-cogs_year1`). The `upfront_investment` was already negative by construction so `abs()` was removed. Frontend does not read these fields directly so no UI impact.
+
+**Status:** Resolved
+
+**Tags:** openpyxl, excel, formatting, neg_currency, cfo-output
+

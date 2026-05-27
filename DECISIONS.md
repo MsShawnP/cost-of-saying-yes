@@ -35,6 +35,11 @@ Each entry:
 - **Scope:** All charts in the HTML/JS frontend
 - **Do not:** Use D3. Do not use Chart.js (insufficient control for the Lailara design system tokens).
 
+### 2026-05-27 — CORS defaults to production-restrictive; development mode requires explicit env var
+- **Why:** Inverting the default (from `"development"` fallback to `"production"` fallback) ensures a fresh deploy is never accidentally open. The restrictive allow-list (`["https://cost-of-saying-yes.fly.dev"]`) is active unless `ENVIRONMENT=development` is set explicitly.
+- **Scope:** `app.py` CORS configuration. Applies to any future environment-gating in this project.
+- **Do not:** Change the `os.getenv("ENVIRONMENT", "production")` default to `"development"` — that would open CORS on every cold deploy where the env var is absent.
+
 ---
 
 ## Data & Schema
@@ -55,6 +60,11 @@ Each entry:
 - **Do not:** Start writing frontend chart code before the JSON contract is defined and agreed on. The contract must include at minimum: months array, gross_revenue, cash_received, cumulative_cash_position, break_even_month.
 
 ---
+
+### 2026-05-27 — Excel cost rows must be stored as negative numbers in the summary dict
+- **Why:** The `neg_currency` openpyxl number format (`"$"#,##0;[Red]("$"#,##0)`) applies red color and parentheses only to numerically negative values. Cost fields stored as positive numbers render in black with no error — the bug is invisible unless you open the workbook. The convention is: positive = inflow, negative = outflow.
+- **Scope:** `model/calculator.py` summary dict and `model/excel.py` cost row rendering.
+- **Do not:** Store cost fields as `abs()` values and rely on the number format for sign. If adding a new cost line to the summary, negate it at the source in `calculator.py`.
 
 ### 2026-05-27 — Excel download uses hardcoded defaults, not user form inputs (MVP)
 - **Why:** The download button is an `<a href>` tag — it can't POST the current form state to the server. Wiring it properly requires either storing the last calculation server-side (session state) or converting to a POST-triggered download. Both add complexity beyond MVP scope.

@@ -7,72 +7,43 @@ session. For session-by-session state, see HANDOFF.md.
 
 ## Goal
 
-Ship a CFO-credible, interactive retailer launch cost model — HTML/JS frontend + Python backend — with a Cinderhaven Walmart case study, downloadable Excel model, and a month-by-month cash flow chart that makes the revenue-vs-cash-reality gap impossible to ignore.
+Harden the test suite and document the project — fix a vacuous model test, add Excel workbook tests, add HTTP integration tests via TestClient, and create a README so a fresh clone is usable without digging through code.
 
 ## Why this arc, why now
 
-This is the only active project. Problem validated by a $28M specialty food operator. Stack decided. All planning gates passed. Time to build.
+Arc 1 shipped a working tool. The /ce:review identified test gaps that leave the Excel layer and API endpoints untested. The vacuous test gives false confidence. The missing README violates the global CLAUDE.md requirement and means anyone (including future-me) hitting the repo cold has no idea how to run it.
 
 ## Business question this arc answers
 
-For a $3M–$20M specialty food brand considering a major retailer: what does saying yes actually cost in the first 12 months, and when does the investment break even?
+Is the tool defensible enough to share broadly — does the test suite actually catch regressions in the model, Excel output, and API contract?
 
 ## Success metric
 
-In 90 days: at least 3 inbound inquiries referencing the tool, OR at least 1 Retailer Launch Economics engagement ($5K–$15K) directly attributed to it.
+All four test gaps resolved. `pytest` passes with meaningful coverage of the Excel workbook, API endpoints, and model edge cases. README exists and is accurate.
 
 ## Tasks
 
-Work in vertical slices — one feature end-to-end before moving to the next.
+**Test hardening**
+- [ ] Fix vacuous test: `test_break_even_month_is_positive_if_set` — switch fixture to high-velocity inputs (doors=100, skus=1, price=5.00, cogs=1.00, velocity=20.0, broker=100_000, scenario='optimistic') so the inner assertion actually runs
+- [ ] Add `tests/test_excel.py` — 4 tests: (1) workbook has sheets ['Summary','Realistic','Optimistic','Pessimistic'], (2) `workbook_to_bytes()` returns non-empty bytes, (3) Summary cell B2 equals realistic `gross_revenue_year1`, (4) `break_even_month=None` writes fallback string not a Python `None`
+- [ ] Add TestClient HTTP integration tests to `tests/test_api.py` — POST /api/calculate with valid body returns 200 with keys realistic/optimistic/pessimistic each with `cumulative_cash_position` length 12; `doors=0` returns 422; GET /api/download/excel returns 200 with correct Content-Disposition and Content-Type; omitting `broker_projection_year1` succeeds
 
-**Slice 1 — Core financial model (Python)**
-- [ ] Define JSON contract: what the Python model returns to the frontend (months, gross_revenue, cash_received, cumulative_cash_position, break_even_month) — do this before any frontend work
-- [ ] Build month-by-month cash flow model engine in Python: invoice generation, payment terms lag, deduction netting (trade spend, chargebacks, slotting), ops overhead
-- [ ] Implement deduction lag correctly: decouple invoice date from cash receipt date (60–90 day gap with netting)
-- [ ] Add input validation: guard against velocity=0, COGS > price, negative inputs, missing required fields
-- [ ] Add retailer parameter defaults: Walmart and Whole Foods/UNFI to start
-- [ ] Validate Cinderhaven numbers: 4 SKUs, 1,200 Walmart doors, realistic velocity and cost inputs from the brief
-- [ ] Write unit tests for core calculation: gross revenue, deductions, net cash, break-even month
+**Documentation**
+- [ ] Create `README.md` — what it does (one sentence), how to run locally (`pip install -r requirements.txt && uvicorn app:app --reload`), main tech/stack, live URL
 
-**Slice 2 — HTML/JS frontend**
-- [ ] Build single-page app: input form (retailer, doors, SKUs, price, COGS, velocity) + results panel
-- [ ] Implement month-by-month cumulative cash flow chart (Plotly or D3) — the centerpiece visual
-- [ ] Add three-scenario toggle: optimistic / realistic / pessimistic
-- [ ] Add "revenue projection vs. cash reality" comparison panel — the killer insight
-- [ ] Apply Lailara design system: canvas background, Chicago navy, HK teal, Playfair/Source Sans 3
+## Out of scope for this arc
 
-**Slice 3 — Excel model**
-- [ ] Build CFO-grade Excel via openpyxl: scenario tabs, sensitivity analysis (velocity + deduction rate), formatted for board presentation
-- [ ] Wire Excel download button in the frontend
-
-**Slice 4 — Cinderhaven case study**
-- [ ] Write the Walmart case study narrative using validated numbers
-- [ ] Render as a static section below the interactive tool
-
-**Slice 5 — Polish and deploy**
-- [ ] Mobile responsiveness
-- [ ] Deploy to Fly.io (or equivalent)
-- [ ] Smoke test end-to-end from fresh URL
-
-## Out of scope for this arc (v2)
-
-- Costco-specific mode (dynamic UI, pallet/rotation inputs, rotation cliff scenario)
-- UNFI/KeHE distributor toggle (double cash conversion hit, distributor margin)
-- Board-ready PNG slide export
-- Additional retailers beyond Walmart and Whole Foods
-- Email gating for Excel download
-- Integration with Retail Readiness Scorecard
+- New features
+- Frontend changes
+- Retailer additions
+- Email gating
 
 ## Definition of done for this arc
 
-- [x] Core model calculates month-by-month cash flow correctly — deduction lag decoupled from invoice date
-- [x] Cinderhaven Walmart scenario matches the validated numbers from brief (within 6.5% on trough; discrepancy documented in FAILURES.md)
-- [x] Chart renders cleanly and shows the cash trough and break-even month
-- [x] Three scenarios work and produce meaningfully different outputs
-- [x] Excel downloads and is formatted well enough to hand to a CFO
-- [x] Unit tests pass for the calculation engine (28/28)
-- [x] Deployed and accessible at a public URL — https://cost-of-saying-yes.fly.dev/
-- [x] Someone other than you can use it without explanation
+- [ ] `pytest` passes with 0 vacuous tests (verified by checking that the fixed test's assertion branch is actually reached)
+- [ ] `tests/test_excel.py` exists with ≥4 meaningful assertions
+- [ ] `tests/test_api.py` exists with ≥4 HTTP-level integration tests
+- [ ] `README.md` exists and contains: one-sentence description, local run command, stack summary, live URL
 
 ---
 
@@ -82,9 +53,9 @@ When an arc completes, archive its goal, completion date, and outcome
 here. Then start a new arc above. Provides continuity without bloating
 the active plan.
 
-### [Date completed] — [Goal]
-- Outcome: [what shipped or what was decided]
-- Tag: [git tag if one was created]
+### 2026-05-27 — Ship CFO-credible retailer launch cost model (Arc 1)
+- Outcome: Deployed to https://cost-of-saying-yes.fly.dev/ — FastAPI backend, Plotly.js chart with three scenarios, 4-tab openpyxl Excel model, Cinderhaven Walmart case study, 28/28 tests. Followed by /ce:review: 19 safe_auto + 1 gated_auto fix applied; P0 resolved (static/index.html tracked in git).
+- Tag: v0.1.0-mvp
 
 ---
 
