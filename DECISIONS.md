@@ -80,6 +80,16 @@ Each entry:
 - **Scope:** All file export endpoints in this project.
 - **Do not:** Add `<a href="/api/download/...">` for any new file export. Always wire a button with a fetch handler.
 
+### 2026-05-27 — Copy Pydantic validators verbatim into independent input models
+- **Why:** `CompareInput` duplicates `ScenarioInput`'s field validators rather than sharing them via a base class or mixin. Keeping validation self-contained makes each model independently testable and avoids coupling two endpoints that may diverge over time.
+- **Scope:** Any new input model added to `app.py`.
+- **Do not:** Extract shared validators into a base class to reduce duplication — the isolation benefit outweighs the DRY cost here.
+
+### 2026-05-27 — /api/compare runs realistic scenario only, sorted best-to-worst by net cash Y1
+- **Why:** A CFO scanning retailer options wants to see the most likely outcome, not optimistic/pessimistic variants — those belong in the per-retailer deep dive via `/api/calculate`. Sorting best-to-worst (highest `net_cash_impact_year1` first) surfaces the most favorable option immediately without requiring the reader to scan.
+- **Scope:** `POST /api/compare` response shape and sort order.
+- **Do not:** Add a `scenario` parameter to `/api/compare` — it would dilute the comparison's clarity. Do not sort ascending or alphabetically.
+
 ---
 
 ## Visualization

@@ -239,3 +239,15 @@ work.
 **Next:** Run `/wrap` to close the session. Then decide Arc 6 — share the tool for lead gen (LinkedIn, CFO outreach) or add more UX polish.
 
 ---
+
+## 2026-05-27 18:03 — Session wrap (Arc 5 complete)
+
+**Started from:** Arc 5 fully planned, no code written. 54/54 tests. Previous session ended after `/ce:plan`.
+
+**Did:** Executed all 5 Arc 5 units in one `/ce:work` pass — Costco + Regional Chain defaults and dropdown (U1), `POST /api/compare` endpoint with `CompareInput` model (U2), comparison table UI with Compare Retailers button (U3), per-field inline validation error spans (U4), chart hover tooltip with monthly breakdown via Plotly customdata (U5). Deployed to fly.dev. Live smoke test confirmed.
+
+**State:** 64/64 tests passing. Arc 5 fully deployed at https://cost-of-saying-yes.fly.dev/. No broken states. 0 unpushed commits.
+
+**Next:** Arc 5 done. Define Arc 6 — options: (1) share the tool for lead gen (LinkedIn post, CFO/operator outreach — the 90-day goal); (2) UX polish (mobile table layout, Costco-specific copy). Tool is CFO-credible enough to share now.
+
+---
