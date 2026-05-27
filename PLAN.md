@@ -72,7 +72,7 @@ Work in vertical slices — one feature end-to-end before moving to the next.
 - [x] Excel downloads and is formatted well enough to hand to a CFO
 - [x] Unit tests pass for the calculation engine (28/28)
 - [x] Deployed and accessible at a public URL — https://cost-of-saying-yes.fly.dev/
-- [ ] Someone other than you can use it without explanation
+- [x] Someone other than you can use it without explanation
 
 ---
 
