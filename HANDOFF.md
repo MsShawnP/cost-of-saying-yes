@@ -119,3 +119,15 @@ work.
 **Next:** Fix vacuous test (`test_break_even_month_is_positive_if_set`), add `tests/test_excel.py` (4 sheets, workbook_to_bytes, cell value, None break-even fallback), add TestClient HTTP integration tests, create README.md, update PLAN.md task boxes and arc history.
 
 ---
+
+## 2026-05-27 — Arc 2 complete: test suite hardened, README created
+
+**What changed:** All 4 Arc 2 tasks done — vacuous test fixed, test_excel.py and test_api.py added, README.md created.
+
+**Why:** Post-review P1 backlog. Excel and API layers had zero test coverage; vacuous test gave false confidence; README was missing.
+
+**State:** 45/45 tests passing (was 28). test_calculator.py (28), test_excel.py (5), test_api.py (12). README.md live. All Arc 2 DoD boxes checked. 2 commits unpushed (f5f0b3d, 09957bb).
+
+**Next:** /wrap to close the session, then push.
+
+---
