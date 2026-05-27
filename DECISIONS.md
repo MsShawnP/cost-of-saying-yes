@@ -39,10 +39,27 @@ Each entry:
 
 ## Data & Schema
 
+### 2026-05-27 — Walmart defaults back-solved from Cinderhaven validated numbers
+- **Why:** `units_per_case = 40` and `chargeback_rate_learning = 0.12` were derived by back-solving from the $28M operator-confirmed fixture, not estimated. Using round-number guesses (4 units/case, 3% chargebacks) produces a trough significantly off from validated numbers.
+- **Scope:** `model/defaults.py` — Walmart retailer defaults
+- **Do not:** Change these values without re-validating against the Cinderhaven fixture numbers. Do not simplify to 4 units/case or 3% learning chargebacks.
+
+### 2026-05-27 — Return all three scenarios in a single API call
+- **Why:** The scenario toggle is a client-side operation — switching optimistic/realistic/pessimistic updates the chart instantly without a server round trip. Computing all three at once is cheap on the server (~3ms); making three sequential requests would be slower and would flash the UI between each switch.
+- **Scope:** `POST /api/calculate` response shape and `static/app.js` state model
+- **Do not:** Split into three separate endpoints or add a `scenario` parameter to the calculate endpoint. All three come back together, always.
+
 ### 2026-05-26 — Python model returns a defined JSON contract to the frontend
 - **Why:** The deduction lag model is stateful across months — Month 3's cash receipt depends on Month 1's invoice minus Month 1–2 deductions. Defining the contract before writing frontend code prevents having to reshape the data structure mid-build.
 - **Scope:** API response from app.py to index.html
 - **Do not:** Start writing frontend chart code before the JSON contract is defined and agreed on. The contract must include at minimum: months array, gross_revenue, cash_received, cumulative_cash_position, break_even_month.
+
+---
+
+### 2026-05-27 — Excel download uses hardcoded defaults, not user form inputs (MVP)
+- **Why:** The download button is an `<a href>` tag — it can't POST the current form state to the server. Wiring it properly requires either storing the last calculation server-side (session state) or converting to a POST-triggered download. Both add complexity beyond MVP scope.
+- **Scope:** `GET /api/download/excel` endpoint in `app.py`
+- **Do not:** Silently leave this as-is past MVP without noting it. The right fix is to pass the last calculated scenario data via POST body and stream the response — or store the result in a short-lived server-side cache keyed by a token.
 
 ---
 

@@ -71,3 +71,15 @@ work.
 **Next:** Open https://cost-of-saying-yes.fly.dev/ and do a manual walkthrough with real inputs. Then run /wrap to close the arc.
 
 ---
+
+## 2026-05-27 — Session wrap
+
+**Started from:** Planning complete, no code existed. HANDOFF.md was stale.
+
+**Did:** Built and deployed all 9 implementation units in one session — FastAPI backend (calculator, defaults, Pydantic validation, Excel export), HTML/JS frontend (Lailara design system, Plotly.js chart, scenario toggle, comparison panel), Cinderhaven case study, Fly.io deployment. 28/28 tests passing.
+
+**State:** Live at https://cost-of-saying-yes.fly.dev/. All API endpoints working. Known gap: model trough at month 2 vs. Cinderhaven validated month 4 — documented in FAILURES.md, not blocking. Definition of done 7/8 checked (last box = manual user test).
+
+**Next:** Open the live URL, fill in Cinderhaven inputs (1,200 doors, 4 SKUs, $1.00 wholesale, $0.45 COGS, 2.0 vel), verify chart renders with trough annotation and all three scenarios, verify Excel downloads and opens. If clean, arc is done.
+
+---
