@@ -158,6 +158,57 @@ class TestDownloadExcelEndpoint:
 
 
 # ---------------------------------------------------------------------------
+# POST /api/compare
+# ---------------------------------------------------------------------------
+
+COMPARE_PAYLOAD = {k: v for k, v in VALID_PAYLOAD.items() if k != "retailer"}
+
+
+class TestCompareEndpoint:
+
+    def test_returns_200_with_four_retailers(self):
+        """Valid payload returns 200 with retailers array of length 4."""
+        response = client.post("/api/compare", json=COMPARE_PAYLOAD)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["retailers"]) == 4
+
+    def test_each_entry_has_required_keys(self):
+        """Every retailer entry must have key, label, trough_value, trough_month, break_even_month, net_cash_impact_year1."""
+        response = client.post("/api/compare", json=COMPARE_PAYLOAD)
+        data = response.json()
+        required = {"key", "label", "trough_value", "trough_month", "break_even_month", "net_cash_impact_year1"}
+        for entry in data["retailers"]:
+            assert required <= set(entry.keys()), f"Missing keys in {entry}"
+
+    def test_result_sorted_best_to_worst(self):
+        """Retailers must be sorted by net_cash_impact_year1 descending."""
+        response = client.post("/api/compare", json=COMPARE_PAYLOAD)
+        data = response.json()
+        values = [r["net_cash_impact_year1"] for r in data["retailers"]]
+        assert values == sorted(values, reverse=True)
+
+    def test_doors_zero_returns_422(self):
+        response = client.post("/api/compare", json={**COMPARE_PAYLOAD, "doors": 0})
+        assert response.status_code == 422
+
+    def test_cogs_greater_than_price_returns_422(self):
+        response = client.post("/api/compare", json={**COMPARE_PAYLOAD, "cogs_per_unit": 1.50})
+        assert response.status_code == 422
+
+    def test_non_numeric_velocity_returns_422(self):
+        response = client.post("/api/compare", json={**COMPARE_PAYLOAD, "velocity_units_per_door_per_week": "fast"})
+        assert response.status_code == 422
+
+    def test_all_four_retailer_keys_present(self):
+        """Response must include walmart, whole_foods, costco, regional_chain."""
+        response = client.post("/api/compare", json=COMPARE_PAYLOAD)
+        data = response.json()
+        keys = {r["key"] for r in data["retailers"]}
+        assert keys == {"walmart", "whole_foods", "costco", "regional_chain"}
+
+
+# ---------------------------------------------------------------------------
 # GET /api/health
 # ---------------------------------------------------------------------------
 
