@@ -66,6 +66,11 @@ Each entry:
 - **Scope:** `model/calculator.py` summary dict and `model/excel.py` cost row rendering.
 - **Do not:** Store cost fields as `abs()` values and rely on the number format for sign. If adding a new cost line to the summary, negate it at the source in `calculator.py`.
 
+### 2026-05-27 — Shared test constants live in root conftest.py, not tests/conftest.py
+- **Why:** pytest adds the rootdir to `sys.path`, not the `tests/` subdirectory. A `conftest.py` inside `tests/` is auto-executed by pytest but not importable as a module — `from conftest import X` raises `ModuleNotFoundError`. The root-level `conftest.py` sits on the same path as `app.py` and `model/`, so imports resolve correctly from all test files.
+- **Scope:** All test infrastructure in this project. Applies any time a shared constant or fixture needs to be imported directly (not just auto-used via pytest fixture injection).
+- **Do not:** Place importable shared test data in `tests/conftest.py`. It will fail at collection time with a cryptic import error, not at runtime.
+
 ### 2026-05-27 — Excel download uses hardcoded defaults, not user form inputs (MVP)
 - **Why:** The download button is an `<a href>` tag — it can't POST the current form state to the server. Wiring it properly requires either storing the last calculation server-side (session state) or converting to a POST-triggered download. Both add complexity beyond MVP scope.
 - **Scope:** `GET /api/download/excel` endpoint in `app.py`

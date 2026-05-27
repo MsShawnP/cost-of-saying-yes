@@ -79,6 +79,18 @@ quarto" or "scope, scrollytelling, decoration"]
 
 **Tags:** javascript, plotly, event-listeners, state-management, resize
 
+### 2026-05-27 — pytest conftest.py in tests/ subdirectory is not importable as a module
+
+**Attempted:** Placed shared test constant `CINDERHAVEN_INPUTS` in `tests/conftest.py` and imported it with `from conftest import CINDERHAVEN_INPUTS` in the test files.
+
+**Why it didn't work:** pytest adds the project **rootdir** to `sys.path`, not the `tests/` subdirectory. Conftest files are auto-discovered and executed by pytest but are not made importable as modules unless they sit at a path-root level. `from conftest import ...` raised `ModuleNotFoundError: No module named 'conftest'`.
+
+**What we tried instead:** Moved `conftest.py` to the project root (same level as `app.py`). The rootdir IS on `sys.path`, so `from conftest import CINDERHAVEN_INPUTS` resolves correctly from any test file. Root-level conftest.py is also the standard pytest location for session-wide fixtures and shared constants.
+
+**Status:** Resolved
+
+**Tags:** pytest, conftest, sys-path, test-organization, imports
+
 ### 2026-05-27 — openpyxl `neg_currency` format requires negative values to render cost rows red
 
 **Attempted:** Store cost summary fields (`upfront_investment`, `total_deductions_year1`, `cogs_year1`) as their absolute positive values in the summary dict, relying on the `neg_currency` number format to apply red/parentheses styling in Excel.

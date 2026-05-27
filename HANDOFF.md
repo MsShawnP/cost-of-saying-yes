@@ -179,3 +179,15 @@ work.
 **Next:** Push to origin/main. Then define Arc 4 or share the live tool toward the 90-day lead gen goal.
 
 ---
+
+## 2026-05-27 — Session wrap (Arc 3 complete)
+
+**Started from:** Arc 3 fully defined, 45/45 tests, no fixes applied — audit only from previous session.
+
+**Did:** Executed all 13 Arc 3 tasks in one /ce:work pass: C1 (inf/nan crash path closed), I1 (Excel deduction sign fixed), I2 (fetch timeout + cold-start hint), I3 (requirements-dev.txt), I5 (security headers middleware), I6 (deduction sign test), N1–N7 (conftest refactor, README, CLAUDE.md voice, Dockerfile, fly.toml, CORS narrowing, scrollIntoView + prefers-reduced-motion). Added 8 new validation tests.
+
+**State:** 53/53 tests passing. All Arc 3 DoD boxes checked. 3 unpushed commits on main. No broken states.
+
+**Next:** Push to origin/main → `fly deploy` to update the live tool → define Arc 4 (share the tool for lead gen, or v2 Excel download that uses user inputs instead of hardcoded Cinderhaven defaults).
+
+---
