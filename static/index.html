@@ -35,6 +35,7 @@
             <option value="costco">Costco</option>
             <option value="regional_chain">Regional Chain</option>
           </select>
+          <span id="retailer-context" class="retailer-context"></span>
         </div>
 
         <div class="form-field">
@@ -138,18 +139,20 @@
 
     <section id="compare-section" style="display:none; margin-top:32px;">
       <h3 class="section-title" style="font-family:var(--font-serif); font-size:18px; font-weight:700; margin-bottom:16px;">Retailer comparison — realistic scenario</h3>
-      <table class="compare-table">
-        <thead>
-          <tr>
-            <th>Retailer</th>
-            <th>Peak trough</th>
-            <th>Trough month</th>
-            <th>Break-even</th>
-            <th>Net cash Y1</th>
-          </tr>
-        </thead>
-        <tbody id="compare-tbody"></tbody>
-      </table>
+      <div class="compare-table-wrapper">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Retailer</th>
+              <th>Peak trough</th>
+              <th>Trough month</th>
+              <th>Break-even</th>
+              <th>Net cash Y1</th>
+            </tr>
+          </thead>
+          <tbody id="compare-tbody"></tbody>
+        </table>
+      </div>
     </section>
 
   </section>
