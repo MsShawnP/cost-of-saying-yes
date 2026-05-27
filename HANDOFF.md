@@ -275,3 +275,15 @@ work.
 **Next:** Define Arc 7 — lead gen push. LinkedIn post targeting CPG founders/CFOs + DM 5–10 operators who've done a Walmart or Costco launch.
 
 ---
+
+## 2026-05-27 19:04
+
+**What changed:** CE review complete — 9 findings (1 P1, 6 P2, 2 P3), all safe_auto fixes deferred to tomorrow
+
+**Why:** Post-Arc-6 structured review. Pre-compaction P0 claim (CompareInput.effective_broker_projection missing) was a false positive — method exists at app.py:201. Re-verified from source.
+
+**State:** 64/64 tests passing. No fixes applied — review only. Findings: #1 no exception logging (P1); #2 RETAILER_LABELS KeyError risk; #3 Excel fetch no timeout; #4 !value falsy check; #5 compare no cold-start hint; #6 style.display inconsistency; #7 broker no upper bound; #8 no CSP (manual); #9 module-level DOM access (advisory).
+
+**Next:** New session → apply all safe_auto fixes (#1–#7), then define Arc 7 (lead gen push).
+
+---
