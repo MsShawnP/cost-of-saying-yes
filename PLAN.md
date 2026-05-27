@@ -7,21 +7,27 @@ session. For session-by-session state, see HANDOFF.md.
 
 ## Goal
 
-[No active arc — define Arc 5]
-
-## Arc 5 options
-
-1. Share the tool for lead gen — LinkedIn post, outreach targeting food brand CFOs/operators
-2. UX polish
-3. New retailer
+Arc 5 — New retailers (Costco + Regional chain) + UX polish
+Plan: `docs/plans/2026-05-27-001-feat-arc5-retailers-ux-plan.md`
 
 ## Tasks
 
-(none yet)
+- [ ] U1: Add Costco + Regional chain to `model/defaults.py` + `static/index.html` dropdown
+- [ ] U2: New `POST /api/compare` endpoint in `app.py`
+- [ ] U3: Retailer comparison metrics table in `static/index.html` + `static/app.js` + `static/style.css`
+- [ ] U4: Inline per-field validation error spans (frontend only)
+- [ ] U5: Chart hover tooltip with monthly breakdown via Plotly customdata
 
 ## Definition of done for this arc
 
-(none yet)
+- [ ] Costco and Regional chain selectable and return valid results from `/api/calculate` and `/api/download/excel`
+- [ ] `/api/compare` returns a 4-retailer summary for any valid brand inputs
+- [ ] Compare table appears in results panel after clicking "Compare retailers"
+- [ ] Each form field shows its own inline error message for invalid input
+- [ ] Chart hover tooltip shows monthly breakdown (Gross Revenue, Deductions, Cash Received, Cumulative)
+- [ ] All existing tests pass (54/54 baseline)
+- [ ] New tests added for U1 and U2 pass
+- [ ] Deployed to fly.dev
 
 ---
 

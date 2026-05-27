@@ -215,3 +215,15 @@ work.
 **Next:** Arc 4 done. Define Arc 5 — options: (1) share the tool for lead gen (LinkedIn post, CFO/operator outreach); (2) UX polish; (3) new retailer.
 
 ---
+
+## 2026-05-27 — Session wrap (Arc 5 planned)
+
+**Started from:** Arc 4 complete and deployed. Arc 5 options listed in PLAN.md but not defined.
+
+**Did:** Selected Arc 5 scope (UX polish + new retailers). Confirmed Costco + Regional chain defaults. Ran `/ce:plan` — wrote full 5-unit plan to `docs/plans/2026-05-27-001-feat-arc5-retailers-ux-plan.md`. No code changed.
+
+**State:** 54/54 tests passing. Plan written and ready. Arc 5 not started. Baseline unchanged.
+
+**Next:** New session → `/ce:work` on `docs/plans/2026-05-27-001-feat-arc5-retailers-ux-plan.md`. Order: U1 (defaults + dropdown) → U2 (compare endpoint) → U3 (compare table) → U4 + U5 (inline validation + chart tooltips).
+
+---
