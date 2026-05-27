@@ -191,3 +191,15 @@ work.
 **Next:** Push to origin/main → `fly deploy` to update the live tool → define Arc 4 (share the tool for lead gen, or v2 Excel download that uses user inputs instead of hardcoded Cinderhaven defaults).
 
 ---
+
+## 2026-05-27 — Arc 4 in progress: Excel download converted to POST with user inputs
+
+**What changed:** `/api/download/excel` converted from GET (hardcoded Cinderhaven defaults) to POST (accepts `ScenarioInput` body). Frontend download button now POSTs current form state, receives blob, triggers download via object URL. 54/54 tests passing.
+
+**Why:** Excel was the primary lead-gen artifact but always generated Cinderhaven numbers regardless of user inputs — a CFO entering their own brand's data would get someone else's workbook.
+
+**State:** 54 tests passing. Arc 4 tasks A1–A3 done (committed 670d0e8). A4 open: README still has the hardcoded-defaults caveat that no longer applies. Not yet deployed.
+
+**Next:** Remove Excel hardcoded-defaults caveat from README (A4), commit, `fly deploy`, then /wrap.
+
+---
