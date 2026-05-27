@@ -116,3 +116,17 @@ quarto" or "scope, scrollytelling, decoration"]
 **Status:** Resolved
 
 **Tags:** launch.json, preview_start, uvicorn, windows, path
+
+---
+
+### 2026-05-27 — CE review false positive P0 after context compaction
+
+**Attempted:** Resumed CE review synthesis from a compacted session summary. The summary claimed `CompareInput.effective_broker_projection()` was missing and all field validators absent — flagged as P0 (every POST /api/compare silently 500s in production).
+
+**Why it didn't work:** The pre-compaction summary was generated from agent outputs that appear to have read `CompareInput` partially or out of context. The method exists at `app.py:201–211` and all validators are present at lines 144–199. The false positive was plausible because `CompareInput` is a long class and the method appears near the bottom.
+
+**What we tried instead:** Re-read `app.py` directly at session start before presenting any findings. One read immediately disproved the P0. This is the correct recovery pattern after compaction: verify agent findings against actual source before reporting.
+
+**Status:** Resolved (no code change needed — code was always correct)
+
+**Tags:** ce-review, compaction, false-positive, code-review, agents, context-loss
