@@ -116,10 +116,10 @@ def calculate_scenario(
 
     summary = {
         "gross_revenue_year1": round(gross_year1, 2),
-        "total_deductions_year1": round(total_deductions, 2),
+        "total_deductions_year1": round(-total_deductions, 2),   # negative: cost rows render red in Excel
         "net_revenue_year1": round(net_revenue, 2),
-        "upfront_investment": round(abs(upfront_investment), 2),
-        "cogs_year1": round(cogs_year1, 2),
+        "upfront_investment": round(upfront_investment, 2),       # negative: already negative, abs() removed
+        "cogs_year1": round(-cogs_year1, 2),                      # negative: cost rows render red in Excel
         "net_cash_impact_year1": round(net_cash_impact, 2),
         "break_even_month": break_even_month,
         "broker_projection_year1": round(broker_projection_year1, 2),
