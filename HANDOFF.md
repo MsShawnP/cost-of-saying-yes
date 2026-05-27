@@ -167,3 +167,15 @@ work.
 **Next:** New session → /ce:work on Arc 3. Start with C1 (inf/nan + upper bounds, `app.py`) and I1 (Excel deduction sign, `excel.py`).
 
 ---
+
+## 2026-05-27 — Arc 3 complete: all audit findings resolved
+
+**What changed:** All 13 Arc 3 tasks executed — C1 (critical inf/nan crash path), I1–I6 (all important fixes), N1–N7 (all nice-to-haves).
+
+**Why:** Full /ce:work pass on the /improve audit findings. Tool is now correct, defensible, and hardened for CFO-credible use.
+
+**State:** 53/53 tests passing (was 45). No broken states. Committed (d404a8c, 1517c9b), not yet pushed. Arc 3 all DoD boxes checked in PLAN.md.
+
+**Next:** Push to origin/main. Then define Arc 4 or share the live tool toward the 90-day lead gen goal.
+
+---
