@@ -98,11 +98,30 @@ def calculate(inp: ScenarioInput):
 
 @app.get("/api/download/excel")
 def download_excel(retailer: str = "walmart", scenario: str = "realistic"):
-    # TODO: replace stub with real Excel builder in U7
-    from fastapi.responses import Response
-    placeholder = b"Excel model coming soon"
-    return Response(
-        content=placeholder,
+    from io import BytesIO
+    from fastapi.responses import StreamingResponse
+    from model.calculator import calculate_all_scenarios
+    from model.excel import build_excel_workbook, workbook_to_bytes
+    from dataclasses import asdict
+
+    # Use default Cinderhaven-ish params for a standalone download
+    # (In production, the user would pass their own inputs via query params or POST)
+    # For MVP, calculate a default scenario so the download always works
+    results = calculate_all_scenarios(
+        retailer=retailer,
+        doors=1200,
+        skus=4,
+        unit_price_wholesale=1.00,
+        cogs_per_unit=0.45,
+        velocity_units_per_door_per_week=2.0,
+        broker_projection_year1=499_200,
+    )
+    scenarios_dict = {k: asdict(v) for k, v in results.items()}
+    wb = build_excel_workbook(scenarios_dict)
+    excel_bytes = workbook_to_bytes(wb)
+
+    return StreamingResponse(
+        BytesIO(excel_bytes),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment; filename=retailer-launch-model.xlsx"}
     )
