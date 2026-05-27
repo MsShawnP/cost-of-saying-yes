@@ -62,6 +62,22 @@ class TestCalculateEndpoint:
         response = client.post("/api/calculate", json=payload)
         assert response.status_code == 200
 
+    def test_costco_retailer_accepted(self):
+        """costco is a valid retailer key and must return 200 with valid cash flow."""
+        payload = {**VALID_PAYLOAD, "retailer": "costco"}
+        response = client.post("/api/calculate", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["realistic"]["cumulative_cash_position"]) == 12
+
+    def test_regional_chain_retailer_accepted(self):
+        """regional_chain is a valid retailer key and must return 200 with valid cash flow."""
+        payload = {**VALID_PAYLOAD, "retailer": "regional_chain"}
+        response = client.post("/api/calculate", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["realistic"]["cumulative_cash_position"]) == 12
+
 
 # ---------------------------------------------------------------------------
 # POST /api/calculate — validation rejections
@@ -117,6 +133,12 @@ class TestDownloadExcelEndpoint:
     def test_invalid_retailer_returns_422(self):
         response = client.post("/api/download/excel", json={**VALID_PAYLOAD, "retailer": "target"})
         assert response.status_code == 422
+
+    def test_costco_download_returns_200(self):
+        """costco retailer must return a non-empty xlsx response."""
+        response = client.post("/api/download/excel", json={**VALID_PAYLOAD, "retailer": "costco"})
+        assert response.status_code == 200
+        assert len(response.content) > 0
 
     def test_workbook_reflects_posted_inputs(self):
         """Returned workbook must use posted inputs, not hardcoded defaults."""

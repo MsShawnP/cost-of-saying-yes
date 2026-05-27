@@ -25,6 +25,28 @@ RETAILER_DEFAULTS = {
         "broker_commission_rate": 0.05,
         "ops_overhead_monthly": 1500.00,
     },
+    "costco": {
+        "payment_lag_months": 1,
+        "trade_spend_rate": 0.06,
+        "chargeback_rate_learning": 0.04,
+        "chargeback_rate_steady": 0.01,
+        "new_store_allowance_per_sku_per_door": 0.00,
+        "slotting_per_sku": 0.00,
+        "units_per_case": 2,
+        "broker_commission_rate": 0.05,
+        "ops_overhead_monthly": 3500.00,
+    },
+    "regional_chain": {
+        "payment_lag_months": 1,
+        "trade_spend_rate": 0.08,
+        "chargeback_rate_learning": 0.03,
+        "chargeback_rate_steady": 0.005,
+        "new_store_allowance_per_sku_per_door": 3.00,
+        "slotting_per_sku": 1500.00,
+        "units_per_case": 12,
+        "broker_commission_rate": 0.05,
+        "ops_overhead_monthly": 1000.00,
+    },
 }
 
 SCENARIO_MULTIPLIERS = {
