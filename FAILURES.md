@@ -103,3 +103,16 @@ quarto" or "scope, scrollytelling, decoration"]
 
 **Tags:** openpyxl, excel, formatting, neg_currency, cfo-output
 
+---
+
+### 2026-05-27 — `uvicorn` ENOENT in launch.json on Windows
+
+**What was attempted:** Set `runtimeExecutable: "uvicorn"` in `.claude/launch.json` to start the FastAPI server via `preview_start`.
+
+**Why it didn't work:** `uvicorn` is not on the system PATH directly on Windows — it's installed inside a Python environment and invoked via the Python module system. The shell couldn't find the executable and returned ENOENT.
+
+**What we tried instead:** Changed to `runtimeExecutable: "python"` with `runtimeArgs: ["-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]`. This works because `python` is on the PATH and `-m uvicorn` delegates to the module.
+
+**Status:** Resolved
+
+**Tags:** launch.json, preview_start, uvicorn, windows, path

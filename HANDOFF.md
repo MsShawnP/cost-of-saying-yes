@@ -263,3 +263,15 @@ work.
 **Next:** Deploy Arc 6 to fly.dev, then define Arc 7 — lead gen push (LinkedIn post, CFO outreach).
 
 ---
+
+## 2026-05-27 18:35 — Session wrap (Arc 6 complete)
+
+**Started from:** Arc 5 complete and deployed. Arc 6 not yet defined.
+
+**Did:** Arc 6 UX polish — per-retailer context callout below dropdown, overflow-x scroll wrapper on compare table (5-col mobile fix), flex-wrap on download section. Created .claude/launch.json for preview_start. Logged, deployed, pushed.
+
+**State:** 64/64 tests passing. Arc 6 deployed at https://cost-of-saying-yes.fly.dev/. origin/main current. PLAN.md shows Arc 5 as active — needs Arc 6 archived and Arc 7 defined.
+
+**Next:** Define Arc 7 — lead gen push. LinkedIn post targeting CPG founders/CFOs + DM 5–10 operators who've done a Walmart or Costco launch.
+
+---

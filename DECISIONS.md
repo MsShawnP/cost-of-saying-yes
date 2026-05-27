@@ -40,6 +40,11 @@ Each entry:
 - **Scope:** `app.py` CORS configuration. Applies to any future environment-gating in this project.
 - **Do not:** Change the `os.getenv("ENVIRONMENT", "production")` default to `"development"` — that would open CORS on every cold deploy where the env var is absent.
 
+### 2026-05-27 — Dev server starts via `python -m uvicorn`, not bare `uvicorn`
+- **Why:** `uvicorn` is not on the Windows PATH directly — it's installed inside the Python environment and only reachable via the module system. Bare `uvicorn` returns ENOENT. Codified in `.claude/launch.json` for `preview_start`.
+- **Scope:** `.claude/launch.json`, any local dev startup docs or scripts.
+- **Do not:** Use `runtimeExecutable: "uvicorn"` in launch.json or write `uvicorn app:app` in shell scripts — it fails on Windows without explicit venv activation.
+
 ---
 
 ## Data & Schema

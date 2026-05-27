@@ -7,27 +7,11 @@ session. For session-by-session state, see HANDOFF.md.
 
 ## Goal
 
-Arc 5 — New retailers (Costco + Regional chain) + UX polish
-Plan: `docs/plans/2026-05-27-001-feat-arc5-retailers-ux-plan.md`
+Arc 7 — Lead gen push (not yet started)
 
 ## Tasks
 
-- [x] U1: Add Costco + Regional chain to `model/defaults.py` + `static/index.html` dropdown
-- [x] U2: New `POST /api/compare` endpoint in `app.py`
-- [x] U3: Retailer comparison metrics table in `static/index.html` + `static/app.js` + `static/style.css`
-- [x] U4: Inline per-field validation error spans (frontend only)
-- [x] U5: Chart hover tooltip with monthly breakdown via Plotly customdata
-
-## Definition of done for this arc
-
-- [x] Costco and Regional chain selectable and return valid results from `/api/calculate` and `/api/download/excel`
-- [x] `/api/compare` returns a 4-retailer summary for any valid brand inputs
-- [x] Compare table appears in results panel after clicking "Compare retailers"
-- [x] Each form field shows its own inline error message for invalid input
-- [x] Chart hover tooltip shows monthly breakdown (Gross Revenue, Deductions, Cash Received, Cumulative)
-- [x] All existing tests pass (64/64 — up from 54)
-- [x] New tests added for U1 and U2 pass
-- [x] Deployed to fly.dev
+(none defined — define at session start)
 
 ---
 
@@ -36,6 +20,14 @@ Plan: `docs/plans/2026-05-27-001-feat-arc5-retailers-ux-plan.md`
 When an arc completes, archive its goal, completion date, and outcome
 here. Then start a new arc above. Provides continuity without bloating
 the active plan.
+
+### 2026-05-27 — UX polish: retailer context callout, mobile table scroll, flex-wrap (Arc 6)
+- Outcome: Per-retailer context callout below dropdown; compare table wrapped in overflow-x:auto (mobile 5-col fix); download section flex-wrap. .claude/launch.json added. 64/64 tests. Deployed.
+- Tag: n/a
+
+### 2026-05-27 — New retailers + compare endpoint (Arc 5)
+- Outcome: Costco + Regional Chain added to defaults and dropdown. POST /api/compare (4-retailer summary). Compare table UI. Inline per-field validation. Chart hover tooltip with monthly breakdown. 64/64 tests (up from 54). Deployed.
+- Tag: n/a
 
 ### 2026-05-27 — v2 Excel download: user inputs via POST (Arc 4)
 - Outcome: `GET /api/download/excel` (hardcoded Cinderhaven defaults) → `POST /api/download/excel` (accepts `ScenarioInput`). Frontend button converted from `<a href>` to fetch+blob. 54/54 tests. Deployed.
