@@ -19,6 +19,8 @@ venv/
 # Environment and secrets
 .env
 *.env
+*.key
+credentials.*
 
 # Data files (uncomment if needed)
 # *.db
