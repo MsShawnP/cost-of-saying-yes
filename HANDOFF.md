@@ -251,3 +251,15 @@ work.
 **Next:** Arc 5 done. Define Arc 6 — options: (1) share the tool for lead gen (LinkedIn post, CFO/operator outreach — the 90-day goal); (2) UX polish (mobile table layout, Costco-specific copy). Tool is CFO-credible enough to share now.
 
 ---
+
+## 2026-05-27 18:30
+
+**What changed:** Arc 6 UX polish — retailer context callout, mobile compare table scroll, download section flex-wrap.
+
+**Why:** Mobile compare table overflowed with 5 columns; no per-retailer copy made Costco's distinct economics invisible to the user.
+
+**State:** 64/64 tests passing. All three changes committed (ac9aeb9). Deploying to fly.dev now.
+
+**Next:** Deploy Arc 6 to fly.dev, then define Arc 7 — lead gen push (LinkedIn post, CFO outreach).
+
+---
