@@ -143,3 +143,15 @@ work.
 **Next:** Arc 2 is done. Define Arc 3 — options: UX polish (fetch timeout/cold-start messaging, scrollIntoView fix), or run /improve for a full audit, or start sharing the tool toward the 90-day lead gen goal.
 
 ---
+
+## 2026-05-27 — /improve audit run; 14 findings across all severity levels
+
+**What changed:** Full /improve audit completed — manual health check + security review + code quality review run in parallel.
+
+**Why:** Scheduled post-arc health check; recommended as next step after Arc 2.
+
+**State:** No fixes applied yet. 45/45 tests passing. 1 critical finding (inf/nan crash path), 6 important findings, 7 nice-to-have. All findings logged in PLAN.md as Arc 3 tasks.
+
+**Next:** New session — run /ce:work to execute all Arc 3 fixes (C1 inf/nan + upper bounds, I1 Excel deduction sign, I2 fetch timeout, I3 dev requirements, I5 security headers, I6 deduction test, N-items).
+
+---
