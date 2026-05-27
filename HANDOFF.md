@@ -227,3 +227,15 @@ work.
 **Next:** New session → `/ce:work` on `docs/plans/2026-05-27-001-feat-arc5-retailers-ux-plan.md`. Order: U1 (defaults + dropdown) → U2 (compare endpoint) → U3 (compare table) → U4 + U5 (inline validation + chart tooltips).
 
 ---
+
+## 2026-05-27 18:03
+
+**What changed:** Arc 5 complete — Costco + Regional Chain retailers, compare endpoint, comparison table UI, inline field validation, chart hover tooltips.
+
+**Why:** Full `/ce:work` pass on the Arc 5 plan. All 5 units shipped in one session.
+
+**State:** 64/64 tests passing (up from 54). All 5 DoD boxes checked. Deployed to https://cost-of-saying-yes.fly.dev/. Live smoke test confirmed: Costco, Regional Chain, Whole Foods, and Walmart all return valid results from `/api/compare`.
+
+**Next:** Run `/wrap` to close the session. Then decide Arc 6 — share the tool for lead gen (LinkedIn, CFO outreach) or add more UX polish.
+
+---
