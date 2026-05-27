@@ -148,6 +148,14 @@ h2 {
   color: var(--color-text-muted);
 }
 
+.field-error {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-red);
+  min-height: 18px;
+  display: block;
+}
+
 .form-field input,
 .form-field select {
   font-family: var(--font-sans);

@@ -42,6 +42,7 @@
           <input type="number" id="doors" name="doors" min="1" step="1"
                  placeholder="e.g. 1200" required>
           <span class="field-hint">Stores stocking your product</span>
+          <span class="field-error" id="doors-error"></span>
         </div>
 
         <div class="form-field">
@@ -49,6 +50,7 @@
           <input type="number" id="skus" name="skus" min="1" step="1"
                  placeholder="e.g. 4" required>
           <span class="field-hint">Distinct products (flavors, sizes)</span>
+          <span class="field-error" id="skus-error"></span>
         </div>
 
         <div class="form-field">
@@ -56,6 +58,7 @@
           <input type="number" id="unit_price_wholesale" name="unit_price_wholesale"
                  min="0.01" step="0.01" placeholder="e.g. 1.00" required>
           <span class="field-hint">What the retailer pays you</span>
+          <span class="field-error" id="unit_price_wholesale-error"></span>
         </div>
 
         <div class="form-field">
@@ -63,6 +66,7 @@
           <input type="number" id="cogs_per_unit" name="cogs_per_unit"
                  min="0.01" step="0.01" placeholder="e.g. 0.45" required>
           <span class="field-hint">Your landed cost per unit</span>
+          <span class="field-error" id="cogs_per_unit-error"></span>
         </div>
 
         <div class="form-field">
@@ -70,6 +74,7 @@
           <input type="number" id="velocity" name="velocity"
                  min="0.01" step="0.1" placeholder="e.g. 2.0" required>
           <span class="field-hint">Expected weekly sell-through per store</span>
+          <span class="field-error" id="velocity-error"></span>
         </div>
 
         <div class="form-field">

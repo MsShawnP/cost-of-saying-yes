@@ -8,6 +8,16 @@ let activeScenario = 'realistic';
 let chartInitialized = false;       // tracks whether Plotly.newPlot has been called
 let resizeListenerAttached = false; // ensures the resize listener is added exactly once
 
+// ── Field-level validation helpers ────────────────────────────────────────
+function setFieldError(fieldId, msg) {
+  const el = document.getElementById(`${fieldId}-error`);
+  if (el) el.textContent = msg;
+}
+
+function clearFieldErrors() {
+  document.querySelectorAll('.field-error').forEach(el => { el.textContent = ''; });
+}
+
 // ── Currency formatter ─────────────────────────────────────────────────────
 function formatCurrency(n) {
   const abs = Math.abs(n);
@@ -86,12 +96,23 @@ function renderChart(scenario) {
   const trace = {
     x: data.months,
     y: [...data.cumulative_cash_position],
+    customdata: data.months.map((_, i) => [
+      data.gross_revenue[i],
+      data.deductions[i],
+      data.cash_received[i],
+    ]),
     type: 'scatter',
     mode: 'lines',
     fill: 'tozeroy',
     fillcolor: 'rgba(31, 46, 122, 0.08)',
     line: { color: '#1f2e7a', width: 2.5 },
-    hovertemplate: 'Month %{x}<br>%{y:$,.0f}<extra></extra>'
+    hovertemplate:
+      'Month %{x}<br>' +
+      'Gross revenue: %{customdata[0]:$,.0f}<br>' +
+      'Deductions: %{customdata[1]:$,.0f}<br>' +
+      'Cash received: %{customdata[2]:$,.0f}<br>' +
+      'Cumulative: %{y:$,.0f}' +
+      '<extra></extra>',
   };
 
   const layout = buildLayout(data.break_even_month, data.trough_month, data.trough_value);
@@ -149,6 +170,7 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
 
   const errorEl = document.getElementById('form-error');
   errorEl.textContent = '';
+  clearFieldErrors();
 
   // Collect form values
   const retailer   = document.getElementById('retailer').value;
@@ -160,13 +182,16 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
   const brokerRaw  = document.getElementById('broker_projection').value;
   const broker     = brokerRaw ? parseFloat(brokerRaw) : null;
 
-  // Client-side guard (server validates too, but this gives instant feedback)
-  if (!doors || !skus || !price || !cogs || !velocity) {
-    errorEl.textContent = 'Please fill in all required fields.';
-    return;
-  }
+  // Per-field client-side validation (server validates too, but this gives instant feedback)
+  let hasError = false;
+  if (!doors)    { setFieldError('doors', 'Required'); hasError = true; }
+  if (!skus)     { setFieldError('skus', 'Required'); hasError = true; }
+  if (!price)    { setFieldError('unit_price_wholesale', 'Required'); hasError = true; }
+  if (!cogs)     { setFieldError('cogs_per_unit', 'Required'); hasError = true; }
+  if (!velocity) { setFieldError('velocity', 'Required'); hasError = true; }
+  if (hasError) return;
   if (cogs >= price) {
-    errorEl.textContent = 'COGS must be less than wholesale price.';
+    setFieldError('cogs_per_unit', 'COGS must be less than wholesale price.');
     return;
   }
 
@@ -337,6 +362,7 @@ document.getElementById('download-btn').addEventListener('click', async () => {
 
   const errorEl = document.getElementById('form-error');
   errorEl.textContent = '';
+  clearFieldErrors();
 
   const retailer  = document.getElementById('retailer').value;
   const doors     = parseInt(document.getElementById('doors').value, 10);
@@ -347,12 +373,15 @@ document.getElementById('download-btn').addEventListener('click', async () => {
   const brokerRaw = document.getElementById('broker_projection').value;
   const broker    = brokerRaw ? parseFloat(brokerRaw) : null;
 
-  if (!doors || !skus || !price || !cogs || !velocity) {
-    errorEl.textContent = 'Please fill in all required fields before downloading.';
-    return;
-  }
+  let hasFieldError = false;
+  if (!doors)    { setFieldError('doors', 'Required'); hasFieldError = true; }
+  if (!skus)     { setFieldError('skus', 'Required'); hasFieldError = true; }
+  if (!price)    { setFieldError('unit_price_wholesale', 'Required'); hasFieldError = true; }
+  if (!cogs)     { setFieldError('cogs_per_unit', 'Required'); hasFieldError = true; }
+  if (!velocity) { setFieldError('velocity', 'Required'); hasFieldError = true; }
+  if (hasFieldError) return;
   if (cogs >= price) {
-    errorEl.textContent = 'COGS must be less than wholesale price.';
+    setFieldError('cogs_per_unit', 'COGS must be less than wholesale price.');
     return;
   }
 
