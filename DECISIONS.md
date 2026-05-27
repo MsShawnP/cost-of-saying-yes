@@ -71,10 +71,9 @@ Each entry:
 - **Scope:** All test infrastructure in this project. Applies any time a shared constant or fixture needs to be imported directly (not just auto-used via pytest fixture injection).
 - **Do not:** Place importable shared test data in `tests/conftest.py`. It will fail at collection time with a cryptic import error, not at runtime.
 
-### 2026-05-27 — Excel download uses hardcoded defaults, not user form inputs (MVP)
-- **Why:** The download button is an `<a href>` tag — it can't POST the current form state to the server. Wiring it properly requires either storing the last calculation server-side (session state) or converting to a POST-triggered download. Both add complexity beyond MVP scope.
-- **Scope:** `GET /api/download/excel` endpoint in `app.py`
-- **Do not:** Silently leave this as-is past MVP without noting it. The right fix is to pass the last calculated scenario data via POST body and stream the response — or store the result in a short-lived server-side cache keyed by a token.
+### 2026-05-27 — Excel download uses hardcoded defaults, not user form inputs (MVP — resolved in Arc 4)
+- **Why:** The download button was an `<a href>` tag — it couldn't POST the current form state to the server.
+- **Resolution (Arc 4):** Converted to `POST /api/download/excel` accepting `ScenarioInput` body. Frontend download button now sends current form state via fetch, receives blob, triggers download via object URL.
 
 ---
 

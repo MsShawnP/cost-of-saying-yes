@@ -7,49 +7,25 @@ session. For session-by-session state, see HANDOFF.md.
 
 ## Goal
 
-Apply all findings from the 2026-05-27 /improve audit — close the inf/nan crash path, fix the Excel deduction color bug, add a fetch timeout, add dev dependencies, add security headers, add a deduction sign test, and clean up the nice-to-have items.
+v2 Excel download: replace hardcoded Cinderhaven defaults with the user's actual scenario inputs. The download button should POST the current form state and stream back a workbook that reflects what the user modeled.
 
 ## Why this arc, why now
 
-The /improve audit found 1 critical crash path (inf/nan bypasses validators), 1 correctness bug in shipped Excel output (monthly deductions render black not red), and 6 other important/polish items. All are small, well-defined fixes. No new features — this arc makes the existing tool correct and defensible.
+The Excel download is the primary lead-gen artifact — it's what a CFO would save and share. Right now it always generates Cinderhaven numbers regardless of what the user entered. A CFO who enters their own brand's data and downloads a workbook with someone else's numbers loses trust immediately.
 
 ## Tasks
 
-**Critical**
-- [x] C1: Add `math.isfinite()` guard to all float validators in `ScenarioInput` (`app.py`) — price, COGS, velocity — and add upper bounds (doors ≤ 10,000; skus ≤ 100; velocity ≤ 1,000; prices ≤ $10,000). Also add a validator for `broker_projection_year1` (currently unvalidated — accepts negative, zero, `inf`).
-
-**Important**
-- [x] I1: Fix Excel per-scenario deduction sign — negate `deductions[m_idx]` when writing column C in `_build_scenario_sheet` (`model/excel.py`) so monthly cost rows render red
-- [x] I2: Add fetch timeout + cold-start message — `AbortController` with 30s timeout in `static/app.js`; show "This may take a moment on first load…" message while in-flight
-- [x] I3: Add `requirements-dev.txt` with `pytest` and `httpx`; update README test instructions
-- [x] I5: Add `SecurityHeadersMiddleware` to `app.py` — `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Cache-Control: no-store` on Excel endpoint
-- [x] I6: Add test asserting per-scenario sheet column C (deductions) values are negative — would have caught I1
-
-**Nice to have**
-- [x] N1: Move `CINDERHAVEN_INPUTS` fixture to `conftest.py` (project root) — remove duplication from `test_calculator.py` and `test_excel.py`
-- [x] N2: Update README — add `ENVIRONMENT=development` note for local dev; add caveat that Excel uses hardcoded Cinderhaven defaults
-- [x] N3: Fill in `CLAUDE.md` voice section (currently template placeholder)
-- [x] N4: Fix Dockerfile base image from `python:3.12-slim` to `python:3.13-slim`
-- [x] N5: Add `[http_service.concurrency]` limit in `fly.toml` to cap parallel requests
-- [x] N6: Narrow CORS `allow_methods` from `["*"]` to `["GET", "POST", "OPTIONS"]` in `app.py`
-- [x] N7: Fix `scrollIntoView` to fire after Plotly draw; add `prefers-reduced-motion` guard in CSS
-
-## Out of scope for this arc
-
-- New features
-- New retailers
-- Email gating
-- CSP header (breaks Plotly's `unsafe-eval` requirement — skip until Plotly is replaced or bundled differently)
-- 422 input-echo strip (P3a from security review — no PII in current schema, defer until schema expands)
+- [x] A1: Convert `/api/download/excel` from GET to POST — accept `ScenarioInput` body (same model as `/api/calculate`), remove hardcoded Cinderhaven values, compute scenarios from user inputs. Keep retailer validation. Update `SecurityHeadersMiddleware` path check to match.
+- [x] A2: Update frontend download button — replace `<a href=...>` with a `<button>` and JS handler that POSTs current form state to `/api/download/excel`, receives blob, triggers download via object URL. Reuse existing `payload` from the calculate flow.
+- [x] A3: Update `tests/test_api.py` — replace GET-based Excel tests with POST; add assertion that returned workbook reflects posted inputs (e.g., summary sheet row count or a cell value specific to posted door count differs from Cinderhaven default).
+- [x] A4: Update README — remove caveat about Excel using hardcoded Cinderhaven defaults.
 
 ## Definition of done for this arc
 
-- [x] `pytest` passes with all new tests (including I6 deduction sign test) — 53/53
-- [x] Sending `unit_price_wholesale: Infinity` returns 422, not 500
-- [x] Excel per-scenario detail tabs show deduction rows in red
-- [x] Calculate button shows cold-start message after 2s; aborts with friendly error after 30s
-- [x] `pip install -r requirements-dev.txt && pytest` works on a fresh clone
-- [x] Response headers include `X-Frame-Options` and `X-Content-Type-Options`
+- [x] `pytest` passes — 54/54
+- [x] Downloading Excel after entering custom inputs produces a workbook with those inputs' numbers, not Cinderhaven's
+- [ ] Download button works end-to-end in the browser
+- [ ] Deployed to fly.dev
 
 ---
 

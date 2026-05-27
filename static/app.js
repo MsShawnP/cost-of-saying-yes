@@ -241,3 +241,72 @@ document.querySelectorAll('.btn-scenario').forEach(btn => {
     if (currentData) renderScenario(btn.dataset.scenario);
   });
 });
+
+// ── Excel download ─────────────────────────────────────────────────────────
+document.getElementById('download-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('download-btn');
+  if (btn.disabled) return;
+
+  const errorEl = document.getElementById('form-error');
+  errorEl.textContent = '';
+
+  const retailer  = document.getElementById('retailer').value;
+  const doors     = parseInt(document.getElementById('doors').value, 10);
+  const skus      = parseInt(document.getElementById('skus').value, 10);
+  const price     = parseFloat(document.getElementById('unit_price_wholesale').value);
+  const cogs      = parseFloat(document.getElementById('cogs_per_unit').value);
+  const velocity  = parseFloat(document.getElementById('velocity').value);
+  const brokerRaw = document.getElementById('broker_projection').value;
+  const broker    = brokerRaw ? parseFloat(brokerRaw) : null;
+
+  if (!doors || !skus || !price || !cogs || !velocity) {
+    errorEl.textContent = 'Please fill in all required fields before downloading.';
+    return;
+  }
+  if (cogs >= price) {
+    errorEl.textContent = 'COGS must be less than wholesale price.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+
+  const payload = {
+    retailer, doors, skus,
+    unit_price_wholesale: price,
+    cogs_per_unit: cogs,
+    velocity_units_per_door_per_week: velocity,
+  };
+  if (broker !== null) payload.broker_projection_year1 = broker;
+
+  try {
+    const res = await fetch('/api/download/excel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const detail = Array.isArray(err.detail)
+        ? err.detail.map(d => d.msg).join('; ')
+        : (err.detail || `Server error (${res.status})`);
+      errorEl.textContent = detail;
+      return;
+    }
+
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'retailer-launch-model.xlsx';
+    a.click();
+    URL.revokeObjectURL(url);
+
+  } catch {
+    errorEl.textContent = 'Download failed — please try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Download Excel Model';
+  }
+});

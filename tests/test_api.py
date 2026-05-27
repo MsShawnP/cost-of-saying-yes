@@ -92,31 +92,47 @@ class TestCalculateValidation:
 
 
 # ---------------------------------------------------------------------------
-# GET /api/download/excel
+# POST /api/download/excel
 # ---------------------------------------------------------------------------
 
 class TestDownloadExcelEndpoint:
 
     def test_returns_200(self):
-        response = client.get("/api/download/excel")
+        response = client.post("/api/download/excel", json=VALID_PAYLOAD)
         assert response.status_code == 200
 
     def test_content_type_is_xlsx(self):
-        response = client.get("/api/download/excel")
+        response = client.post("/api/download/excel", json=VALID_PAYLOAD)
         assert (
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             in response.headers["content-type"]
         )
 
     def test_content_disposition_is_attachment(self):
-        response = client.get("/api/download/excel")
+        response = client.post("/api/download/excel", json=VALID_PAYLOAD)
         cd = response.headers["content-disposition"]
         assert "attachment" in cd
         assert "retailer-launch-model.xlsx" in cd
 
     def test_invalid_retailer_returns_422(self):
-        response = client.get("/api/download/excel?retailer=target")
+        response = client.post("/api/download/excel", json={**VALID_PAYLOAD, "retailer": "target"})
         assert response.status_code == 422
+
+    def test_workbook_reflects_posted_inputs(self):
+        """Returned workbook must use posted inputs, not hardcoded defaults."""
+        import io
+        import openpyxl
+
+        # Summary B2 = realistic gross revenue year 1.
+        # doors=600 must produce half the revenue of doors=1200.
+        response_600  = client.post("/api/download/excel", json={**VALID_PAYLOAD, "doors": 600})
+        response_1200 = client.post("/api/download/excel", json=VALID_PAYLOAD)
+        assert response_600.status_code == 200
+        assert response_1200.status_code == 200
+
+        revenue_600  = openpyxl.load_workbook(io.BytesIO(response_600.content))["Summary"]["B2"].value
+        revenue_1200 = openpyxl.load_workbook(io.BytesIO(response_1200.content))["Summary"]["B2"].value
+        assert revenue_600 < revenue_1200
 
 
 # ---------------------------------------------------------------------------

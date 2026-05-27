@@ -26,9 +26,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-45 tests across `tests/test_calculator.py`, `tests/test_excel.py`, and `tests/test_api.py`.
-
-> **Note:** The Excel download uses hardcoded Cinderhaven Provisions defaults (1,200 doors, 4 SKUs, $1.00 wholesale, $0.45 COGS, 2.0 velocity). It does not reflect the inputs you enter in the form. This is a known MVP constraint — see DECISIONS.md.
+54 tests across `tests/test_calculator.py`, `tests/test_excel.py`, and `tests/test_api.py`.
 
 ## Stack
 

@@ -142,25 +142,17 @@ def calculate(inp: ScenarioInput):
         raise HTTPException(status_code=500, detail="Calculation failed — please try again")
 
 
-@app.get("/api/download/excel")
-def download_excel(retailer: str = "walmart"):
-    if retailer not in RETAILER_DEFAULTS:
-        raise HTTPException(
-            status_code=422,
-            detail=f"retailer must be one of {list(RETAILER_DEFAULTS.keys())}",
-        )
+@app.post("/api/download/excel")
+def download_excel(inp: ScenarioInput):
     try:
-        # MVP: uses hardcoded Cinderhaven-profile defaults.
-        # See DECISIONS.md: "Excel download uses hardcoded defaults (MVP)"
-        # v2 fix: accept user inputs via POST body and stream response.
         results = calculate_all_scenarios(
-            retailer=retailer,
-            doors=1200,
-            skus=4,
-            unit_price_wholesale=1.00,
-            cogs_per_unit=0.45,
-            velocity_units_per_door_per_week=2.0,
-            broker_projection_year1=499_200,
+            retailer=inp.retailer,
+            doors=inp.doors,
+            skus=inp.skus,
+            unit_price_wholesale=inp.unit_price_wholesale,
+            cogs_per_unit=inp.cogs_per_unit,
+            velocity_units_per_door_per_week=inp.velocity_units_per_door_per_week,
+            broker_projection_year1=inp.effective_broker_projection(),
         )
         scenarios_dict = {k: asdict(v) for k, v in results.items()}
         wb = build_excel_workbook(scenarios_dict)
