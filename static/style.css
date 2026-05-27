@@ -469,3 +469,11 @@ h2 {
   .cs-gap-divider { display: none; }
   .cs-gap-value { font-size: 36px; }
 }
+
+/* ── Motion preference ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

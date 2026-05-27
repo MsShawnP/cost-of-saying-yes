@@ -28,8 +28,7 @@ FAILURES.md as relevant.
 
 ## Voice and standards
 
-- [Describe how written output should sound — e.g., "casual and
-  clear", "professional but approachable", "technical and precise"]
+- Sober, declarative, data-forward. Economist style — plain English that tells the truth as the data presents it. Numbers carry the argument; prose frames it.
 - No marketing voice or consultant filler ("leverage," "synergy,"
   "best-in-class," "unlock," "drive value")
 - No hedging that softens a real finding

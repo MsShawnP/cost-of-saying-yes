@@ -11,21 +11,7 @@ import pytest
 
 from model.calculator import calculate_all_scenarios
 from model.excel import build_excel_workbook, workbook_to_bytes
-
-
-# ---------------------------------------------------------------------------
-# Shared fixture
-# ---------------------------------------------------------------------------
-
-CINDERHAVEN_INPUTS = dict(
-    retailer="walmart",
-    doors=1200,
-    skus=4,
-    unit_price_wholesale=1.00,
-    cogs_per_unit=0.45,
-    velocity_units_per_door_per_week=2.0,
-    broker_projection_year1=499_200,
-)
+from conftest import CINDERHAVEN_INPUTS
 
 
 @pytest.fixture(scope="module")
@@ -100,3 +86,27 @@ class TestSummarySheet:
         summary_ws = test_wb["Summary"]
 
         assert summary_ws["B8"].value == "No break-even in 12 months"
+
+
+# ---------------------------------------------------------------------------
+# Per-scenario sheet deduction sign (I6)
+# ---------------------------------------------------------------------------
+
+class TestScenarioSheetDeductions:
+
+    def test_deduction_cells_are_negative(self, wb, scenarios):
+        """Column C (Deductions) in per-scenario sheets must hold negative values.
+
+        The neg_currency number format renders positives black and negatives red.
+        A positive deduction value would silently render black, hiding the cost.
+        """
+        for scenario_name in ("Realistic", "Optimistic", "Pessimistic"):
+            ws = wb[scenario_name]
+            month_count = len(scenarios[scenario_name.lower()]["months"])
+            for m_idx in range(month_count):
+                row = m_idx + 2
+                val = ws.cell(row, 3).value
+                assert val < 0, (
+                    f"{scenario_name} row {row} deduction is {val} — must be negative "
+                    "for neg_currency format to render it red"
+                )

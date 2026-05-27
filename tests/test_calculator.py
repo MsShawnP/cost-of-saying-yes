@@ -9,21 +9,7 @@ from pydantic import ValidationError
 from model.calculator import calculate_scenario, calculate_all_scenarios
 from model.defaults import RETAILER_DEFAULTS, SCENARIO_MULTIPLIERS
 from app import ScenarioInput
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-CINDERHAVEN_INPUTS = dict(
-    retailer="walmart",
-    doors=1200,
-    skus=4,
-    unit_price_wholesale=1.00,
-    cogs_per_unit=0.45,
-    velocity_units_per_door_per_week=2.0,
-    broker_projection_year1=499_200,
-)
+from conftest import CINDERHAVEN_INPUTS
 
 
 # ---------------------------------------------------------------------------
@@ -281,3 +267,55 @@ class TestInputValidation:
         assert inp.broker_projection_year1 is None
         # effective_broker_projection() should compute a value even when None
         assert inp.effective_broker_projection() > 0
+
+    def test_inf_price_raises(self):
+        """float('inf') must be rejected — bypassing this caused the crash path."""
+        with pytest.raises(ValidationError):
+            ScenarioInput(
+                doors=1200, skus=4, unit_price_wholesale=float("inf"),
+                cogs_per_unit=0.45, velocity_units_per_door_per_week=2.0,
+            )
+
+    def test_nan_price_raises(self):
+        with pytest.raises(ValidationError):
+            ScenarioInput(
+                doors=1200, skus=4, unit_price_wholesale=float("nan"),
+                cogs_per_unit=0.45, velocity_units_per_door_per_week=2.0,
+            )
+
+    def test_inf_velocity_raises(self):
+        with pytest.raises(ValidationError):
+            ScenarioInput(
+                doors=1200, skus=4, unit_price_wholesale=1.00,
+                cogs_per_unit=0.45, velocity_units_per_door_per_week=float("inf"),
+            )
+
+    def test_doors_upper_bound_raises(self):
+        with pytest.raises(ValidationError):
+            ScenarioInput(
+                doors=10_001, skus=4, unit_price_wholesale=1.00,
+                cogs_per_unit=0.45, velocity_units_per_door_per_week=2.0,
+            )
+
+    def test_skus_upper_bound_raises(self):
+        with pytest.raises(ValidationError):
+            ScenarioInput(
+                doors=1200, skus=101, unit_price_wholesale=1.00,
+                cogs_per_unit=0.45, velocity_units_per_door_per_week=2.0,
+            )
+
+    def test_broker_projection_inf_raises(self):
+        with pytest.raises(ValidationError):
+            ScenarioInput(
+                doors=1200, skus=4, unit_price_wholesale=1.00,
+                cogs_per_unit=0.45, velocity_units_per_door_per_week=2.0,
+                broker_projection_year1=float("inf"),
+            )
+
+    def test_broker_projection_negative_raises(self):
+        with pytest.raises(ValidationError):
+            ScenarioInput(
+                doors=1200, skus=4, unit_price_wholesale=1.00,
+                cogs_per_unit=0.45, velocity_units_per_door_per_week=2.0,
+                broker_projection_year1=-1.0,
+            )

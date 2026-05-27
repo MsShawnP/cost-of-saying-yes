@@ -1,10 +1,11 @@
+import math
 import mimetypes
 import os
 from dataclasses import asdict
 from io import BytesIO
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, field_validator, model_validator
 from model.calculator import calculate_all_scenarios
@@ -24,9 +25,19 @@ allow_origins = ["https://cost-of-saying-yes.fly.dev"] if environment == "produc
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next) -> Response:
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    if request.url.path == "/api/download/excel":
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 class ScenarioInput(BaseModel):
@@ -43,6 +54,8 @@ class ScenarioInput(BaseModel):
     def doors_positive(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("doors must be greater than 0")
+        if v > 10_000:
+            raise ValueError("doors must be 10,000 or fewer")
         return v
 
     @field_validator("skus")
@@ -50,20 +63,41 @@ class ScenarioInput(BaseModel):
     def skus_positive(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("skus must be greater than 0")
+        if v > 100:
+            raise ValueError("skus must be 100 or fewer")
         return v
 
     @field_validator("velocity_units_per_door_per_week")
     @classmethod
     def velocity_positive(cls, v: float) -> float:
+        if not math.isfinite(v):
+            raise ValueError("velocity must be a finite number")
         if v <= 0:
             raise ValueError("velocity must be greater than 0")
+        if v > 1_000:
+            raise ValueError("velocity must be 1,000 or fewer")
         return v
 
     @field_validator("unit_price_wholesale", "cogs_per_unit")
     @classmethod
     def price_positive(cls, v: float) -> float:
+        if not math.isfinite(v):
+            raise ValueError("price fields must be finite numbers")
         if v <= 0:
             raise ValueError("price fields must be greater than 0")
+        if v > 10_000:
+            raise ValueError("price fields must be $10,000 or less")
+        return v
+
+    @field_validator("broker_projection_year1")
+    @classmethod
+    def broker_positive_if_set(cls, v: float | None) -> float | None:
+        if v is None:
+            return v
+        if not math.isfinite(v):
+            raise ValueError("broker_projection_year1 must be a finite number")
+        if v <= 0:
+            raise ValueError("broker_projection_year1 must be greater than 0")
         return v
 
     @model_validator(mode="after")

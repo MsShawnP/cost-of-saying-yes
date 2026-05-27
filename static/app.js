@@ -97,16 +97,18 @@ function renderChart(scenario) {
   const layout = buildLayout(data.break_even_month, data.trough_month, data.trough_value);
   const config = { responsive: true, displaylogo: false, displayModeBar: false };
 
+  let plotPromise;
   if (!chartInitialized) {
-    Plotly.newPlot('cashflow-chart', [trace], layout, config);
+    plotPromise = Plotly.newPlot('cashflow-chart', [trace], layout, config);
     chartInitialized = true;
     if (!resizeListenerAttached) {
       window.addEventListener('resize', () => Plotly.Plots.resize('cashflow-chart'));
       resizeListenerAttached = true;
     }
   } else {
-    Plotly.react('cashflow-chart', [trace], layout, config);
+    plotPromise = Plotly.react('cashflow-chart', [trace], layout, config);
   }
+  return plotPromise;
 }
 
 // ── Comparison panel ───────────────────────────────────────────────────────
@@ -126,13 +128,15 @@ function updateComparisonPanel(scenario) {
 // ── Scenario switch ────────────────────────────────────────────────────────
 function renderScenario(scenario) {
   activeScenario = scenario;
-  renderChart(scenario);
+  const chartPromise = renderChart(scenario);
   updateComparisonPanel(scenario);
 
   // Update toggle button states
   document.querySelectorAll('.btn-scenario').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.scenario === scenario);
   });
+
+  return chartPromise;
 }
 
 // ── Form submission ────────────────────────────────────────────────────────
@@ -177,11 +181,19 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
   };
   if (broker !== null) payload.broker_projection_year1 = broker;
 
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), 30_000);
+  // Show cold-start hint after 2s — Fly.io auto-start can take a moment
+  const coldStartId = setTimeout(() => {
+    if (btn.disabled) btn.textContent = 'Calculating… (first load may take a moment)';
+  }, 2_000);
+
   try {
     const res = await fetch('/api/calculate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: controller.signal,
     });
 
     if (!res.ok) {
@@ -203,15 +215,21 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
     // Enable scenario buttons
     document.querySelectorAll('.btn-scenario').forEach(b => b.disabled = false);
 
-    // Render the scenario the user last had selected (preserves choice across recalculations)
-    renderScenario(activeScenario);
+    // Render scenario, then scroll after Plotly draw completes
+    await renderScenario(activeScenario);
 
-    // Smooth scroll to results
-    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    panel.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
 
   } catch (err) {
-    errorEl.textContent = 'Network error — is the server running?';
+    if (err.name === 'AbortError') {
+      errorEl.textContent = 'Request timed out — the server may be starting up. Please try again.';
+    } else {
+      errorEl.textContent = 'Network error — is the server running?';
+    }
   } finally {
+    clearTimeout(timeoutId);
+    clearTimeout(coldStartId);
     btn.disabled = false;
     btn.textContent = 'Calculate';
   }

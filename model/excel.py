@@ -171,7 +171,7 @@ def _build_scenario_sheet(wb: Workbook, scenario_name: str, scenario_data: dict)
         ws.cell(row, 2).value = gross_rev[m_idx]
         ws.cell(row, 2).style = "currency"
 
-        ws.cell(row, 3).value = deductions[m_idx]
+        ws.cell(row, 3).value = -deductions[m_idx]  # negative so neg_currency renders red
         ws.cell(row, 3).style = "neg_currency"
 
         ws.cell(row, 4).value = net_inv

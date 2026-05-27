@@ -12,10 +12,23 @@ Enter your retailer, door count, SKU count, wholesale price, COGS, and velocity.
 
 ```bash
 pip install -r requirements.txt
-uvicorn app:app --reload
+ENVIRONMENT=development uvicorn app:app --reload
 ```
 
 Open http://localhost:8000
+
+`ENVIRONMENT=development` opens CORS to `*` so the frontend can reach the API from any origin during local work.
+
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+45 tests across `tests/test_calculator.py`, `tests/test_excel.py`, and `tests/test_api.py`.
+
+> **Note:** The Excel download uses hardcoded Cinderhaven Provisions defaults (1,200 doors, 4 SKUs, $1.00 wholesale, $0.45 COGS, 2.0 velocity). It does not reflect the inputs you enter in the form. This is a known MVP constraint — see DECISIONS.md.
 
 ## Stack
 
@@ -25,14 +38,6 @@ Open http://localhost:8000
 - **Frontend:** Vanilla HTML/CSS/JS, Plotly.js
 - **Design:** Lailara Design System v2 (Playfair Display + Source Sans 3, Chicago navy)
 - **Hosting:** Fly.io (auto-stop/start, shared CPU, 256 MB)
-
-## Tests
-
-```bash
-pytest
-```
-
-45 tests across `tests/test_calculator.py`, `tests/test_excel.py`, and `tests/test_api.py`.
 
 ## Project
 
