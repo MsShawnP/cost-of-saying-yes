@@ -131,3 +131,15 @@ work.
 **Next:** /wrap to close the session, then push.
 
 ---
+
+## 2026-05-27 — Session wrap (Arc 2 complete)
+
+**Started from:** Post-review /wrap partially complete (compacted mid-session). Arc 1 done, Arc 2 defined.
+
+**Did:** Completed the previous /wrap (HANDOFF, FAILURES, DECISIONS, PLAN.md arc archive). Ran /ce:work for all 4 Arc 2 tasks: fixed vacuous test, added tests/test_excel.py (5 tests), added tests/test_api.py (12 tests), created README.md.
+
+**State:** 45/45 tests passing. README.md live. Arc 2 fully done (all DoD boxes checked). No broken states.
+
+**Next:** Arc 2 is done. Define Arc 3 — options: UX polish (fetch timeout/cold-start messaging, scrollIntoView fix), or run /improve for a full audit, or start sharing the tool toward the 90-day lead gen goal.
+
+---
