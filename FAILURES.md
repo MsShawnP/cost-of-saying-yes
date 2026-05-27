@@ -42,3 +42,16 @@ quarto" or "scope, scrollytelling, decoration"]
 **Status:** Resolved
 
 **Tags:** init, windows, auto-mode, permissions, claude-commands
+
+### 2026-05-27 — Model trough month diverges from Cinderhaven validated fixture
+
+**Attempted:** Running the calculator with Cinderhaven inputs (1,200 doors, 4 SKUs, $1.00 wholesale, $0.45 COGS, 2.0 units/door/week, Walmart defaults) and comparing to validated fixture numbers.
+
+**Why it didn't work:** The model places the cash trough at month 2; the Cinderhaven fixture records it at month 4. The model treats upfront costs (free fills + new store allowances) as a pre-launch lump sum, causing the trough to hit immediately in months 1-2 before any cash arrives. In reality, these may be deducted from the first invoice, pushing the trough later.
+
+**What we tried instead:** Fixed `units_per_case` from 4 → 40 (back-solved: 4×1,200×40×$0.45 = $86,400 free fills) and `chargeback_rate_learning` from 3% → 12% (back-solved: $14,976 ÷ (3×$41,568) = 12%). Trough value improved to -$175,811 vs -$165,000 (6.5% off). Trough month remains 2.
+
+**Status:** Open — per the plan, the CINDERHAVEN_VALIDATED fixture is authoritative for the case study section. The interactive tool produces its own computed output. The divergence is documented here and need not be fixed for MVP.
+
+**Tags:** calculator, trough, cinderhaven, deduction-lag, free-fills, units-per-case
+
