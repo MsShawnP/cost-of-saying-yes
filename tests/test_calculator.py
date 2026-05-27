@@ -176,10 +176,26 @@ class TestBreakEven:
         assert result.break_even_month is not None
 
     def test_break_even_month_is_positive_if_set(self):
-        """break_even_month must be between 1 and 12 if not None."""
-        result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="optimistic")
-        if result.break_even_month is not None:
-            assert 1 <= result.break_even_month <= 12
+        """break_even_month must be between 1 and 12 if not None.
+
+        Uses high-velocity inputs that guarantee break_even_month is set so the
+        inner assertion always runs. CINDERHAVEN_INPUTS+optimistic returns None
+        (trough never recovers in 12 months) — that made this test vacuous.
+        """
+        result = calculate_scenario(
+            retailer="walmart",
+            doors=100,
+            skus=1,
+            unit_price_wholesale=5.00,
+            cogs_per_unit=1.00,
+            velocity_units_per_door_per_week=20.0,
+            broker_projection_year1=100_000,
+            scenario="optimistic",
+        )
+        assert result.break_even_month is not None, (
+            "High-velocity fixture must have a break_even_month — check calculator logic"
+        )
+        assert 1 <= result.break_even_month <= 12
 
     def test_cumulative_cash_is_non_negative_at_break_even(self):
         """At break_even_month, cumulative cash position must be >= 0."""
