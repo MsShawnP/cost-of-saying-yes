@@ -203,3 +203,15 @@ work.
 **Next:** Remove Excel hardcoded-defaults caveat from README (A4), commit, `fly deploy`, then /wrap.
 
 ---
+
+## 2026-05-27 — Session wrap (Arc 4 complete)
+
+**Started from:** Arc 3 deployed. Next: push Arc 3, fly deploy, then define Arc 4.
+
+**Did:** Pushed Arc 3, deployed. Defined and executed Arc 4 in full: converted `/api/download/excel` from GET with hardcoded Cinderhaven defaults to POST accepting `ScenarioInput`; updated frontend download button to fetch-POST with blob download; updated tests (GET→POST, added workbook-reflects-inputs assertion); removed README caveat. Deployed Arc 4 to fly.dev.
+
+**State:** 54/54 tests passing. Arc 4 fully deployed at https://cost-of-saying-yes.fly.dev/. No broken states. Excel download reflects user inputs.
+
+**Next:** Arc 4 done. Define Arc 5 — options: (1) share the tool for lead gen (LinkedIn post, CFO/operator outreach); (2) UX polish; (3) new retailer.
+
+---

@@ -7,25 +7,21 @@ session. For session-by-session state, see HANDOFF.md.
 
 ## Goal
 
-v2 Excel download: replace hardcoded Cinderhaven defaults with the user's actual scenario inputs. The download button should POST the current form state and stream back a workbook that reflects what the user modeled.
+[No active arc — define Arc 5]
 
-## Why this arc, why now
+## Arc 5 options
 
-The Excel download is the primary lead-gen artifact — it's what a CFO would save and share. Right now it always generates Cinderhaven numbers regardless of what the user entered. A CFO who enters their own brand's data and downloads a workbook with someone else's numbers loses trust immediately.
+1. Share the tool for lead gen — LinkedIn post, outreach targeting food brand CFOs/operators
+2. UX polish
+3. New retailer
 
 ## Tasks
 
-- [x] A1: Convert `/api/download/excel` from GET to POST — accept `ScenarioInput` body (same model as `/api/calculate`), remove hardcoded Cinderhaven values, compute scenarios from user inputs. Keep retailer validation. Update `SecurityHeadersMiddleware` path check to match.
-- [x] A2: Update frontend download button — replace `<a href=...>` with a `<button>` and JS handler that POSTs current form state to `/api/download/excel`, receives blob, triggers download via object URL. Reuse existing `payload` from the calculate flow.
-- [x] A3: Update `tests/test_api.py` — replace GET-based Excel tests with POST; add assertion that returned workbook reflects posted inputs (e.g., summary sheet row count or a cell value specific to posted door count differs from Cinderhaven default).
-- [x] A4: Update README — remove caveat about Excel using hardcoded Cinderhaven defaults.
+(none yet)
 
 ## Definition of done for this arc
 
-- [x] `pytest` passes — 54/54
-- [x] Downloading Excel after entering custom inputs produces a workbook with those inputs' numbers, not Cinderhaven's
-- [ ] Download button works end-to-end in the browser
-- [ ] Deployed to fly.dev
+(none yet)
 
 ---
 
@@ -34,6 +30,10 @@ The Excel download is the primary lead-gen artifact — it's what a CFO would sa
 When an arc completes, archive its goal, completion date, and outcome
 here. Then start a new arc above. Provides continuity without bloating
 the active plan.
+
+### 2026-05-27 — v2 Excel download: user inputs via POST (Arc 4)
+- Outcome: `GET /api/download/excel` (hardcoded Cinderhaven defaults) → `POST /api/download/excel` (accepts `ScenarioInput`). Frontend button converted from `<a href>` to fetch+blob. 54/54 tests. Deployed.
+- Tag: n/a
 
 ### 2026-05-27 — Harden test suite and add README (Arc 2)
 - Outcome: 45/45 tests passing (up from 28). Fixed vacuous test, added tests/test_excel.py (5 tests) and tests/test_api.py (12 tests), created README.md. No regressions.

@@ -75,6 +75,11 @@ Each entry:
 - **Why:** The download button was an `<a href>` tag — it couldn't POST the current form state to the server.
 - **Resolution (Arc 4):** Converted to `POST /api/download/excel` accepting `ScenarioInput` body. Frontend download button now sends current form state via fetch, receives blob, triggers download via object URL.
 
+### 2026-05-27 — Binary file downloads use POST + blob object URL, not anchor href
+- **Why:** Anchor `<a href>` can only GET — it can't carry form state. POST body → StreamingResponse → `res.blob()` → `URL.createObjectURL()` is the correct pattern for downloads that depend on user inputs.
+- **Scope:** All file export endpoints in this project.
+- **Do not:** Add `<a href="/api/download/...">` for any new file export. Always wire a button with a fetch handler.
+
 ---
 
 ## Visualization
