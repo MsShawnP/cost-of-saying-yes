@@ -155,3 +155,15 @@ work.
 **Next:** New session — run /ce:work to execute all Arc 3 fixes (C1 inf/nan + upper bounds, I1 Excel deduction sign, I2 fetch timeout, I3 dev requirements, I5 security headers, I6 deduction test, N-items).
 
 ---
+
+## 2026-05-27 — Session wrap (/improve audit)
+
+**Started from:** Arc 2 complete, no active arc. /next recommended /improve.
+
+**Did:** Ran /improve as scheduled health check — manual audit + security review in parallel. 14 findings: 1 critical (inf/nan crash), 6 important, 7 nice-to-have. Wrote all findings as Arc 3 tasks in PLAN.md.
+
+**State:** 45/45 tests passing. No fixes applied — audit only. Arc 3 fully defined and ready to execute.
+
+**Next:** New session → /ce:work on Arc 3. Start with C1 (inf/nan + upper bounds, `app.py`) and I1 (Excel deduction sign, `excel.py`).
+
+---
