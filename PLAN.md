@@ -7,11 +7,11 @@ session. For session-by-session state, see HANDOFF.md.
 
 ## Goal
 
-Arc 7 — Lead gen push (not yet started)
+No active arc. Tool is complete and deployed.
 
 ## Tasks
 
-(none defined — define at session start)
+(none — Arc 7 lead gen push is handled outside Claude Code)
 
 ---
 
