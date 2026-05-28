@@ -21,9 +21,11 @@ function updateRetailerContext(value) {
   if (el) el.textContent = RETAILER_CONTEXT[value] || '';
 }
 
-const retailerSelect = document.getElementById('retailer');
-updateRetailerContext(retailerSelect.value);
-retailerSelect.addEventListener('change', e => updateRetailerContext(e.target.value));
+document.addEventListener('DOMContentLoaded', () => {
+  const retailerSelect = document.getElementById('retailer');
+  updateRetailerContext(retailerSelect.value);
+  retailerSelect.addEventListener('change', e => updateRetailerContext(e.target.value));
+});
 
 // ── Field-level validation helpers ────────────────────────────────────────
 function setFieldError(fieldId, msg) {
@@ -201,11 +203,11 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
 
   // Per-field client-side validation (server validates too, but this gives instant feedback)
   let hasError = false;
-  if (!doors)    { setFieldError('doors', 'Required'); hasError = true; }
-  if (!skus)     { setFieldError('skus', 'Required'); hasError = true; }
-  if (!price)    { setFieldError('unit_price_wholesale', 'Required'); hasError = true; }
-  if (!cogs)     { setFieldError('cogs_per_unit', 'Required'); hasError = true; }
-  if (!velocity) { setFieldError('velocity', 'Required'); hasError = true; }
+  if (isNaN(doors))    { setFieldError('doors', 'Required'); hasError = true; }
+  if (isNaN(skus))     { setFieldError('skus', 'Required'); hasError = true; }
+  if (isNaN(price))    { setFieldError('unit_price_wholesale', 'Required'); hasError = true; }
+  if (isNaN(cogs))     { setFieldError('cogs_per_unit', 'Required'); hasError = true; }
+  if (isNaN(velocity)) { setFieldError('velocity', 'Required'); hasError = true; }
   if (hasError) return;
   if (cogs >= price) {
     setFieldError('cogs_per_unit', 'COGS must be less than wholesale price.');
@@ -303,7 +305,7 @@ function renderCompareTable(data) {
     `;
     tbody.appendChild(tr);
   });
-  document.getElementById('compare-section').style.display = '';
+  document.getElementById('compare-section').classList.add('visible');
 }
 
 document.getElementById('compare-btn').addEventListener('click', async () => {
@@ -328,6 +330,10 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
 
   btn.disabled = true;
   btn.textContent = 'Comparing…';
+  // Show cold-start hint after 2s — Fly.io auto-start can take a moment
+  const coldStartId = setTimeout(() => {
+    if (btn.disabled) btn.textContent = 'Comparing… (first load may take a moment)';
+  }, 2_000);
 
   const payload = {
     doors, skus,
@@ -367,6 +373,7 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
     }
   } finally {
     clearTimeout(timeoutId);
+    clearTimeout(coldStartId);
     btn.disabled = false;
     btn.textContent = 'Compare Retailers';
   }
@@ -391,11 +398,11 @@ document.getElementById('download-btn').addEventListener('click', async () => {
   const broker    = brokerRaw ? parseFloat(brokerRaw) : null;
 
   let hasFieldError = false;
-  if (!doors)    { setFieldError('doors', 'Required'); hasFieldError = true; }
-  if (!skus)     { setFieldError('skus', 'Required'); hasFieldError = true; }
-  if (!price)    { setFieldError('unit_price_wholesale', 'Required'); hasFieldError = true; }
-  if (!cogs)     { setFieldError('cogs_per_unit', 'Required'); hasFieldError = true; }
-  if (!velocity) { setFieldError('velocity', 'Required'); hasFieldError = true; }
+  if (isNaN(doors))    { setFieldError('doors', 'Required'); hasFieldError = true; }
+  if (isNaN(skus))     { setFieldError('skus', 'Required'); hasFieldError = true; }
+  if (isNaN(price))    { setFieldError('unit_price_wholesale', 'Required'); hasFieldError = true; }
+  if (isNaN(cogs))     { setFieldError('cogs_per_unit', 'Required'); hasFieldError = true; }
+  if (isNaN(velocity)) { setFieldError('velocity', 'Required'); hasFieldError = true; }
   if (hasFieldError) return;
   if (cogs >= price) {
     setFieldError('cogs_per_unit', 'COGS must be less than wholesale price.');
@@ -413,11 +420,15 @@ document.getElementById('download-btn').addEventListener('click', async () => {
   };
   if (broker !== null) payload.broker_projection_year1 = broker;
 
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), 30_000);
+
   try {
     const res = await fetch('/api/download/excel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
 
     if (!res.ok) {
@@ -437,9 +448,14 @@ document.getElementById('download-btn').addEventListener('click', async () => {
     a.click();
     URL.revokeObjectURL(url);
 
-  } catch {
-    errorEl.textContent = 'Download failed — please try again.';
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      errorEl.textContent = 'Request timed out — please try again.';
+    } else {
+      errorEl.textContent = 'Download failed — please try again.';
+    }
   } finally {
+    clearTimeout(timeoutId);
     btn.disabled = false;
     btn.textContent = 'Download Excel Model';
   }

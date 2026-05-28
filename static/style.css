@@ -228,6 +228,10 @@ h2 {
 #results-panel { display: none; }
 #results-panel.visible { display: block; }
 
+/* ── Compare section ───────────────────────────────────────── */
+#compare-section { display: none; margin-top: 32px; }
+#compare-section.visible { display: block; }
+
 /* ── Chart ─────────────────────────────────────────────────── */
 #cashflow-chart {
   width: 100%;

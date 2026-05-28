@@ -1,3 +1,4 @@
+import logging
 import math
 import mimetypes
 import os
@@ -15,6 +16,8 @@ from model.excel import build_excel_workbook, workbook_to_bytes
 # Windows MIME fix — must run before StaticFiles mount
 mimetypes.add_type("application/javascript", ".js")
 mimetypes.add_type("text/css", ".css")
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Retailer Launch Cost Model")
 
@@ -35,6 +38,15 @@ async def security_headers(request: Request, call_next) -> Response:
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' https://cdn.plot.ly; "
+        "style-src 'self' 'unsafe-inline'; "
+        "font-src 'self'; "
+        "connect-src 'self'; "
+        "img-src 'self' data:; "
+        "frame-ancestors 'none'"
+    )
     if request.url.path == "/api/download/excel":
         response.headers["Cache-Control"] = "no-store"
     return response
@@ -98,6 +110,8 @@ class ScenarioInput(BaseModel):
             raise ValueError("broker_projection_year1 must be a finite number")
         if v <= 0:
             raise ValueError("broker_projection_year1 must be greater than 0")
+        if v > 50_000_000:
+            raise ValueError("broker_projection_year1 must be $50,000,000 or less")
         return v
 
     @model_validator(mode="after")
@@ -190,6 +204,8 @@ class CompareInput(BaseModel):
             raise ValueError("broker_projection_year1 must be a finite number")
         if v <= 0:
             raise ValueError("broker_projection_year1 must be greater than 0")
+        if v > 50_000_000:
+            raise ValueError("broker_projection_year1 must be $50,000,000 or less")
         return v
 
     @model_validator(mode="after")
@@ -229,7 +245,7 @@ def compare(inp: CompareInput):
             )
             rows.append({
                 "key": key,
-                "label": RETAILER_LABELS[key],
+                "label": RETAILER_LABELS.get(key, key),
                 "trough_value": result.trough_value,
                 "trough_month": result.trough_month,
                 "break_even_month": result.break_even_month,
@@ -240,6 +256,7 @@ def compare(inp: CompareInput):
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception:
+        logger.exception("Compare calculation failed")
         raise HTTPException(status_code=500, detail="Compare calculation failed — please try again")
 
 
@@ -257,6 +274,7 @@ def calculate(inp: ScenarioInput):
         )
         return {scenario: asdict(result) for scenario, result in results.items()}
     except Exception:
+        logger.exception("Calculation failed")
         raise HTTPException(status_code=500, detail="Calculation failed — please try again")
 
 
@@ -284,6 +302,7 @@ def download_excel(inp: ScenarioInput):
     except HTTPException:
         raise
     except Exception:
+        logger.exception("Excel generation failed")
         raise HTTPException(status_code=500, detail="Excel generation failed — please try again")
 
 
