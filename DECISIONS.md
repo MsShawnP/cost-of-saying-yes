@@ -95,6 +95,11 @@ Each entry:
 - **Scope:** `POST /api/compare` response shape and sort order.
 - **Do not:** Add a `scenario` parameter to `/api/compare` — it would dilute the comparison's clarity. Do not sort ascending or alphabetically.
 
+### 2026-05-28 — CSP allows unsafe-inline for styles because Plotly.js injects inline styles
+- **Why:** Plotly.js injects inline styles at render time. Removing `unsafe-inline` from `style-src` breaks the chart silently — no console error, just unstyled or non-rendering output. `script-src` is locked to `'self'` + `https://cdn.plot.ly` only; `unsafe-inline` is not allowed for scripts.
+- **Scope:** `app.py` `security_headers` middleware, `Content-Security-Policy` header.
+- **Do not:** Remove `'unsafe-inline'` from `style-src` to "tighten" the CSP without first verifying Plotly renders correctly in a browser. Do not add `'unsafe-inline'` to `script-src` — that would negate the XSS protection the CSP provides.
+
 ---
 
 ## Visualization
