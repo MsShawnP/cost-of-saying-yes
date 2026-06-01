@@ -2,7 +2,7 @@
 
 An interactive tool that models the actual first-year economics of a major retailer launch — making visible the cash trough that revenue projections hide.
 
-**Live:** https://cost-of-saying-yes.fly.dev/
+**Live:** https://launch-cost.lailarallc.com
 
 ## What it does
 
