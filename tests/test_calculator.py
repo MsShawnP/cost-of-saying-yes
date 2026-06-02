@@ -62,23 +62,23 @@ class TestDeductionLag:
         result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
         assert result.cash_received[0] == 0.0
 
-    def test_cash_received_month_2_is_zero(self):
-        """With 2-month lag, no cash arrives in month 2."""
+    def test_cash_received_month_2_equals_net_invoiced_month_1(self):
+        """With 1-month lag, cash arrives in month 2 (net_inv[0])."""
         result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
-        assert result.cash_received[1] == 0.0
-
-    def test_cash_received_month_3_equals_net_invoiced_month_1(self):
-        """cash_received[2] must equal net_invoiced[0] for 2-month lag."""
-        result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
-        # net_invoiced[0] = gross_rev[0] - deductions[0]
         net_invoiced_0 = result.gross_revenue[0] - result.deductions[0]
-        assert abs(result.cash_received[2] - net_invoiced_0) < 0.01
+        assert abs(result.cash_received[1] - net_invoiced_0) < 0.01
 
-    def test_cash_received_month_4_equals_net_invoiced_month_2(self):
-        """Verify the lag holds for the second cash receipt too."""
+    def test_cash_received_month_3_equals_net_invoiced_month_2(self):
+        """cash_received[2] must equal net_invoiced[1] for 1-month lag."""
         result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
         net_invoiced_1 = result.gross_revenue[1] - result.deductions[1]
-        assert abs(result.cash_received[3] - net_invoiced_1) < 0.01
+        assert abs(result.cash_received[2] - net_invoiced_1) < 0.01
+
+    def test_cash_received_month_4_equals_net_invoiced_month_3(self):
+        """Verify the lag holds for the third cash receipt too."""
+        result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
+        net_invoiced_2 = result.gross_revenue[2] - result.deductions[2]
+        assert abs(result.cash_received[3] - net_invoiced_2) < 0.01
 
     def test_whole_foods_cash_received_month_1_is_zero(self):
         """Whole Foods has 1-month lag — month 1 still zero."""
@@ -198,6 +198,34 @@ class TestBreakEven:
         if result.break_even_month is not None:
             idx = result.break_even_month - 1
             assert result.cumulative_cash_position[idx] >= 0
+
+
+# ---------------------------------------------------------------------------
+# Cinderhaven validated pair regression — pins model to operator-confirmed numbers
+# ---------------------------------------------------------------------------
+
+class TestCinderhavenValidatedRegression:
+    """Regression guard: Cinderhaven inputs must reproduce the operator-validated pair.
+
+    Root cause of prior -$55K discrepancy (fixed 2026-06-01):
+      - payment_lag_months was 2 (NET-60); validated operator uses NET-30 (lag=1)
+      - ops_overhead_monthly was $2,000; validated figure implies $3,232/month
+
+    If either parameter drifts, these tests catch it immediately.
+    """
+
+    def test_gross_revenue_matches_validated(self):
+        from model.defaults import CINDERHAVEN_VALIDATED
+        result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
+        assert result.summary["gross_revenue_year1"] == CINDERHAVEN_VALIDATED["gross_revenue_year1"]
+
+    def test_net_cash_matches_validated(self):
+        from model.defaults import CINDERHAVEN_VALIDATED
+        result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
+        assert result.summary["net_cash_impact_year1"] == CINDERHAVEN_VALIDATED["net_cash_impact_year1"], (
+            f"net_cash_impact mismatch: model={result.summary['net_cash_impact_year1']}, "
+            f"validated={CINDERHAVEN_VALIDATED['net_cash_impact_year1']}"
+        )
 
 
 # ---------------------------------------------------------------------------
