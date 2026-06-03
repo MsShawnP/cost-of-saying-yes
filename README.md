@@ -42,4 +42,4 @@ pytest
 Canonical Cinderhaven conformance — 50 SKUs across 5 product lines and 6 contracted retailers.
 ## Project
 
-Built by [Lailara LLC](https://lailara.com) — fractional CFO and launch economics advisory for $3M–$20M specialty food brands.
+Built by [Lailara LLC](https://lailarallc.com) — fractional CFO and launch economics advisory for $3M–$20M specialty food brands.

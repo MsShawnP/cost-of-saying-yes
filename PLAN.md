@@ -38,7 +38,7 @@ the active plan.
 - Tag: n/a (no new deployment)
 
 ### 2026-05-27 — Ship CFO-credible retailer launch cost model (Arc 1)
-- Outcome: Deployed to https://cost-of-saying-yes.fly.dev/ — FastAPI backend, Plotly.js chart with three scenarios, 4-tab openpyxl Excel model, Cinderhaven Walmart case study, 28/28 tests. Followed by /ce:review: 19 safe_auto + 1 gated_auto fix applied; P0 resolved (static/index.html tracked in git).
+- Outcome: Deployed to https://launch-cost.lailarallc.com/ — FastAPI backend, Plotly.js chart with three scenarios, 4-tab openpyxl Excel model, Cinderhaven Walmart case study, 28/28 tests. Followed by /ce:review: 19 safe_auto + 1 gated_auto fix applied; P0 resolved (static/index.html tracked in git).
 - Tag: v0.1.0-mvp
 
 ---

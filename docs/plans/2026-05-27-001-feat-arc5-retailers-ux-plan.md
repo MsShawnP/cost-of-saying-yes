@@ -377,4 +377,4 @@ Recommended order: U1 → U2 → U3, then U4 and U5 in parallel (or serial — b
 - [ ] Chart hover tooltip shows monthly breakdown (Gross Revenue, Deductions, Cash Received, Cumulative)
 - [ ] All existing tests pass (54/54 baseline)
 - [ ] New tests added for U1 and U2 pass
-- [ ] Deployed to fly.dev
+- [ ] Deployed to launch-cost.lailarallc.com

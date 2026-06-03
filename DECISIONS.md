@@ -36,7 +36,7 @@ Each entry:
 - **Do not:** Use D3. Do not use Chart.js (insufficient control for the Lailara design system tokens).
 
 ### 2026-05-27 — CORS defaults to production-restrictive; development mode requires explicit env var
-- **Why:** Inverting the default (from `"development"` fallback to `"production"` fallback) ensures a fresh deploy is never accidentally open. The restrictive allow-list (`["https://cost-of-saying-yes.fly.dev"]`) is active unless `ENVIRONMENT=development` is set explicitly.
+- **Why:** Inverting the default (from `"development"` fallback to `"production"` fallback) ensures a fresh deploy is never accidentally open. The restrictive allow-list (`["https://launch-cost.lailarallc.com"]`) is active unless `ENVIRONMENT=development` is set explicitly.
 - **Scope:** `app.py` CORS configuration. Applies to any future environment-gating in this project.
 - **Do not:** Change the `os.getenv("ENVIRONMENT", "production")` default to `"development"` — that would open CORS on every cold deploy where the env var is absent.
 

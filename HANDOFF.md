@@ -62,13 +62,13 @@ work.
 
 ## 2026-05-27 12:45
 
-**What changed:** All 9 implementation units built and deployed — tool is live at https://cost-of-saying-yes.fly.dev/
+**What changed:** All 9 implementation units built and deployed — tool is live at https://launch-cost.lailarallc.com/
 
 **Why:** Full /ce:work session executed serially U1→U9. Backend (FastAPI + calculator + Excel), frontend (HTML/CSS/JS + Plotly.js + Lailara tokens), and Fly.io deployment all completed in one session.
 
 **State:** 28/28 tests passing. All three scenarios return correct data. Excel download streams a real 4-tab workbook. Cinderhaven case study renders as static HTML. One known gap: model trough falls at month 2, Cinderhaven validated fixture says month 4 — documented in FAILURES.md, not blocking.
 
-**Next:** Open https://cost-of-saying-yes.fly.dev/ and do a manual walkthrough with real inputs. Then run /wrap to close the arc.
+**Next:** Open https://launch-cost.lailarallc.com/ and do a manual walkthrough with real inputs. Then run /wrap to close the arc.
 
 ---
 
@@ -78,7 +78,7 @@ work.
 
 **Did:** Built and deployed all 9 implementation units in one session — FastAPI backend (calculator, defaults, Pydantic validation, Excel export), HTML/JS frontend (Lailara design system, Plotly.js chart, scenario toggle, comparison panel), Cinderhaven case study, Fly.io deployment. 28/28 tests passing.
 
-**State:** Live at https://cost-of-saying-yes.fly.dev/. All API endpoints working. Known gap: model trough at month 2 vs. Cinderhaven validated month 4 — documented in FAILURES.md, not blocking. Definition of done 7/8 checked (last box = manual user test).
+**State:** Live at https://launch-cost.lailarallc.com/. All API endpoints working. Known gap: model trough at month 2 vs. Cinderhaven validated month 4 — documented in FAILURES.md, not blocking. Definition of done 7/8 checked (last box = manual user test).
 
 **Next:** Open the live URL, fill in Cinderhaven inputs (1,200 doors, 4 SKUs, $1.00 wholesale, $0.45 COGS, 2.0 vel), verify chart renders with trough annotation and all three scenarios, verify Excel downloads and opens. If clean, arc is done.
 
@@ -90,7 +90,7 @@ work.
 
 **Why:** Final verification step from the previous session wrap.
 
-**State:** Live at https://cost-of-saying-yes.fly.dev/. Arc 1 is done.
+**State:** Live at https://launch-cost.lailarallc.com/. Arc 1 is done.
 
 **Next:** (none — session ended cleanly)
 
@@ -110,7 +110,7 @@ work.
 
 ## 2026-05-27 — Session wrap (post-review)
 
-**Started from:** Arc 1 complete, tool live at https://cost-of-saying-yes.fly.dev/. Manual verification confirmed. Ran /ce:review.
+**Started from:** Arc 1 complete, tool live at https://launch-cost.lailarallc.com/. Manual verification confirmed. Ran /ce:review.
 
 **Did:** 12-reviewer parallel code review. Applied 19 safe_auto fixes + 1 gated_auto fix (Excel cost fields negated so neg_currency format renders red). Resolved P0: static/index.html was never in git (Quarto .gitignore artifact — `*.html` excluded it). CORS default corrected, health check path fixed, resize listener leak patched.
 
@@ -210,7 +210,7 @@ work.
 
 **Did:** Pushed Arc 3, deployed. Defined and executed Arc 4 in full: converted `/api/download/excel` from GET with hardcoded Cinderhaven defaults to POST accepting `ScenarioInput`; updated frontend download button to fetch-POST with blob download; updated tests (GET→POST, added workbook-reflects-inputs assertion); removed README caveat. Deployed Arc 4 to fly.dev.
 
-**State:** 54/54 tests passing. Arc 4 fully deployed at https://cost-of-saying-yes.fly.dev/. No broken states. Excel download reflects user inputs.
+**State:** 54/54 tests passing. Arc 4 fully deployed at https://launch-cost.lailarallc.com/. No broken states. Excel download reflects user inputs.
 
 **Next:** Arc 4 done. Define Arc 5 — options: (1) share the tool for lead gen (LinkedIn post, CFO/operator outreach); (2) UX polish; (3) new retailer.
 
@@ -234,7 +234,7 @@ work.
 
 **Why:** Full `/ce:work` pass on the Arc 5 plan. All 5 units shipped in one session.
 
-**State:** 64/64 tests passing (up from 54). All 5 DoD boxes checked. Deployed to https://cost-of-saying-yes.fly.dev/. Live smoke test confirmed: Costco, Regional Chain, Whole Foods, and Walmart all return valid results from `/api/compare`.
+**State:** 64/64 tests passing (up from 54). All 5 DoD boxes checked. Deployed to https://launch-cost.lailarallc.com/. Live smoke test confirmed: Costco, Regional Chain, Whole Foods, and Walmart all return valid results from `/api/compare`.
 
 **Next:** Run `/wrap` to close the session. Then decide Arc 6 — share the tool for lead gen (LinkedIn, CFO outreach) or add more UX polish.
 
@@ -246,7 +246,7 @@ work.
 
 **Did:** Executed all 5 Arc 5 units in one `/ce:work` pass — Costco + Regional Chain defaults and dropdown (U1), `POST /api/compare` endpoint with `CompareInput` model (U2), comparison table UI with Compare Retailers button (U3), per-field inline validation error spans (U4), chart hover tooltip with monthly breakdown via Plotly customdata (U5). Deployed to fly.dev. Live smoke test confirmed.
 
-**State:** 64/64 tests passing. Arc 5 fully deployed at https://cost-of-saying-yes.fly.dev/. No broken states. 0 unpushed commits.
+**State:** 64/64 tests passing. Arc 5 fully deployed at https://launch-cost.lailarallc.com/. No broken states. 0 unpushed commits.
 
 **Next:** Arc 5 done. Define Arc 6 — options: (1) share the tool for lead gen (LinkedIn post, CFO/operator outreach — the 90-day goal); (2) UX polish (mobile table layout, Costco-specific copy). Tool is CFO-credible enough to share now.
 
@@ -270,7 +270,7 @@ work.
 
 **Did:** Arc 6 UX polish — per-retailer context callout below dropdown, overflow-x scroll wrapper on compare table (5-col mobile fix), flex-wrap on download section. Created .claude/launch.json for preview_start. Logged, deployed, pushed.
 
-**State:** 64/64 tests passing. Arc 6 deployed at https://cost-of-saying-yes.fly.dev/. origin/main current. PLAN.md shows Arc 5 as active — needs Arc 6 archived and Arc 7 defined.
+**State:** 64/64 tests passing. Arc 6 deployed at https://launch-cost.lailarallc.com/. origin/main current. PLAN.md shows Arc 5 as active — needs Arc 6 archived and Arc 7 defined.
 
 **Next:** Define Arc 7 — lead gen push. LinkedIn post targeting CPG founders/CFOs + DM 5–10 operators who've done a Walmart or Costco launch.
 
@@ -306,7 +306,7 @@ work.
 
 **Did:** Applied all 9 CE review fixes in one /ce:work pass — exception logging, RETAILER_LABELS fallback, broker upper bound, Excel fetch AbortController, isNaN() field checks, compare cold-start hint, compare-section classList toggle, CSP header, DOMContentLoaded guard. 64/64 tests. Pushed and deployed to Fly.io.
 
-**State:** 64/64 tests passing. All CE review findings resolved. Deployed at https://cost-of-saying-yes.fly.dev/. No open findings. Arc 7 not started.
+**State:** 64/64 tests passing. All CE review findings resolved. Deployed at https://launch-cost.lailarallc.com/. No open findings. Arc 7 not started.
 
 **Next:** Arc 7 — lead gen push. No code needed. Draft LinkedIn post + direct outreach to 5–10 CPG founders/operators. Tool is ready to share.
 
