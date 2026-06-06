@@ -8,6 +8,11 @@ An interactive tool that models the actual first-year economics of a major retai
 
 Enter your retailer, door count, SKU count, wholesale price, COGS, and velocity. The tool runs a month-by-month cash flow model showing the cumulative cash position across three scenarios (optimistic / realistic / pessimistic), annotates the peak cash trough and break-even month, and downloads a CFO-grade 4-tab Excel model. A Cinderhaven Provisions case study — a brand that saw $499K in projected revenue turn into a −$36K cash year — anchors the numbers to reality.
 
+## Data Contract
+
+**Cinderhaven canonical dataset:** 50 SKUs / 5 production lines / 6 retailers.
+**Scope:** This is a generic launch economics model. The Cinderhaven case study uses a 4-SKU launch subset, not the full 50-SKU catalog. Audits should not flag the narrower SKU count as data drift.
+
 ## Run locally
 
 ```bash
