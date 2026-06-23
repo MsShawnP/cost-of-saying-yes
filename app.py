@@ -141,7 +141,7 @@ class ScenarioInput(BaseModel):
 
 RETAILER_LABELS = {
     "walmart": "Walmart",
-    "whole_foods": "Whole Foods / UNFI",
+    "whole_foods": "Whole Foods",
     "costco": "Costco",
     "regional_chain": "Regional Chain",
 }
