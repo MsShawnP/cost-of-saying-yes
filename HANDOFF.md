@@ -311,3 +311,15 @@ work.
 **Next:** Arc 7 — lead gen push. No code needed. Draft LinkedIn post + direct outreach to 5–10 CPG founders/operators. Tool is ready to share.
 
 ---
+
+## 2026-06-23 16:45
+
+**What changed:** Restructured page into two tabs (Your Model / Case Study) with dynamic line-item table that decomposes user inputs after Calculate.
+
+**Why:** Calculator output showed only a chart and summary numbers — no line-item visibility into where the costs come from. Case study was always visible, cluttering the model tab. Now users see their own cost breakdown, and the Cinderhaven case study lives on its own tab.
+
+**State:** 66/66 tests passing. Deployed to Fly.io. compute_line_items() in app.py, renderLineItems() in app.js, tab CSS in style.css, restructured index.html. Cache busters (?v=2) on CSS/JS tags. All working — dynamic table updates on scenario switch.
+
+**Next:** Run /wrap to close the session.
+
+---
