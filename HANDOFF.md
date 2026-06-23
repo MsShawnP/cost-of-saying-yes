@@ -323,3 +323,15 @@ work.
 **Next:** Run /wrap to close the session.
 
 ---
+
+## 2026-06-23 17:00 — Session wrap
+
+**Started from:** Arc 6 deployed, all CE review fixes applied. Arc 7 (lead gen) was next defined goal. No code tasks queued.
+
+**Did:** Three changes in one session: (1) updated Cinderhaven source attribution to disclose synthetic data, (2) fixed case study table (added Ops Overhead + Cash Collection Lag, corrected Ongoing Deductions $4,992→$3,744, renamed UNFI dropdown label), (3) restructured page into two tabs with dynamic line-item table showing user's cost decomposition. All three committed, pushed, deployed to Fly.io.
+
+**State:** 66/66 tests passing. Deployed. Both tabs working — Your Model shows dynamic line-item table that updates on scenario switch, Case Study shows static Cinderhaven data. All numbers verified correct (−$36,320 net cash impact).
+
+**Next:** Arc 7 — lead gen push. Draft LinkedIn post + direct outreach to 5–10 CPG founders/operators. Tool is CFO-credible and ready to share.
+
+---

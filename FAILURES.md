@@ -130,3 +130,15 @@ quarto" or "scope, scrollytelling, decoration"]
 **Status:** Resolved (no code change needed — code was always correct)
 
 **Tags:** ce-review, compaction, false-positive, code-review, agents, context-loss
+
+### 2026-06-23 — FastAPI StaticFiles caches stale CSS and JS during development
+
+**Attempted:** Rewrote `static/style.css` (added tab rules) and `static/app.js` (added `renderLineItems`, tab switching, `formatTableCurrency`). Expected the preview server to serve the updated files.
+
+**Why it didn't work:** FastAPI StaticFiles served the old file contents even after restarting the preview server. The dynamic line-item table appeared empty because the browser/server was still loading the old `app.js` that didn't define `renderLineItems`. Same issue hit CSS first — new tab styles weren't applied.
+
+**What we tried instead:** Added cache-busting query params (`?v=2`) to the `<link>` and `<script>` tags in `index.html`. Fixed CSS first but didn't apply the same fix to JS immediately — lost ~30 minutes re-diagnosing the identical root cause on the JS file.
+
+**Status:** Resolved
+
+**Tags:** fastapi, staticfiles, caching, cache-buster, preview-server, development

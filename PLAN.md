@@ -21,6 +21,10 @@ When an arc completes, archive its goal, completion date, and outcome
 here. Then start a new arc above. Provides continuity without bloating
 the active plan.
 
+### 2026-06-23 — Tab restructure + dynamic line-item table (Arc 8)
+- Outcome: Page restructured into "Your Model" / "Case Study" tabs. Dynamic line-item table renders user's cost decomposition after Calculate, updates on scenario switch. Source attribution updated for synthetic data disclosure. Case study table corrected (2 missing line items, wrong deduction amount, UNFI label). 66/66 tests (up from 64). Deployed.
+- Tag: n/a
+
 ### 2026-05-27 — UX polish: retailer context callout, mobile table scroll, flex-wrap (Arc 6)
 - Outcome: Per-retailer context callout below dropdown; compare table wrapped in overflow-x:auto (mobile 5-col fix); download section flex-wrap. .claude/launch.json added. 64/64 tests. Deployed.
 - Tag: n/a
