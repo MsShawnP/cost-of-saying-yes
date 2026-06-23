@@ -25,6 +25,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const retailerSelect = document.getElementById('retailer');
   updateRetailerContext(retailerSelect.value);
   retailerSelect.addEventListener('change', e => updateRetailerContext(e.target.value));
+
+  // Tab switching
+  document.querySelectorAll('.page-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
 });
 
 // ── Field-level validation helpers ────────────────────────────────────────
@@ -37,18 +47,62 @@ function clearFieldErrors() {
   document.querySelectorAll('.field-error').forEach(el => { el.textContent = ''; });
 }
 
-// ── Currency formatter ─────────────────────────────────────────────────────
+// ── Currency formatters ───────────────────────────────────────────────────
 function formatCurrency(n) {
   const abs = Math.abs(n);
   const sign = n < 0 ? '-' : '';
   if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`;
   if (abs >= 1_000) {
     const kVal = (abs / 1_000).toFixed(0);
-    // Guard against rounding up to 1000 (e.g. $999,500 → "$1000K")
     if (Number(kVal) >= 1000) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`;
     return `${sign}$${kVal}K`;
   }
   return `${sign}$${abs.toFixed(0)}`;
+}
+
+function formatTableCurrency(n) {
+  const abs = Math.abs(n);
+  const s = '$' + abs.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  return n < 0 ? '−' + s : s;
+}
+
+// ── HTML escaping ─────────────────────────────────────────────────────────
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ── Dynamic line-item table ───────────────────────────────────────────────
+function renderLineItems(scenario) {
+  const data = currentData[scenario];
+  if (!data || !data.line_items) return;
+
+  const container = document.getElementById('line-items-table');
+  const items = data.line_items;
+  const net = data.summary.net_cash_impact_year1;
+
+  let html = '<table class="cs-table"><thead><tr>';
+  html += '<th>Line Item</th><th class="cs-table-amount">Amount</th>';
+  html += '</tr></thead><tbody>';
+
+  items.forEach(item => {
+    const cls = item.amount < 0 ? 'cs-negative' : 'cs-positive';
+    html += '<tr><td>' + escapeHtml(item.label) + '</td>';
+    html += '<td class="cs-table-amount ' + cls + '">' + formatTableCurrency(item.amount) + '</td></tr>';
+  });
+
+  const netCls = net < 0 ? 'cs-negative' : 'cs-positive';
+  html += '<tr class="cs-table-total"><td><strong>Net Year 1 Cash Impact</strong></td>';
+  html += '<td class="cs-table-amount ' + netCls + '"><strong>' + formatTableCurrency(net) + '</strong></td></tr>';
+
+  if (data.trough_value < 0) {
+    html += '<tr class="cs-table-total"><td><strong>Peak Cash Trough (Month ' + data.trough_month + ')</strong></td>';
+    html += '<td class="cs-table-amount cs-negative"><strong>' + formatTableCurrency(data.trough_value) + '</strong></td></tr>';
+  }
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
 }
 
 // ── Chart rendering ────────────────────────────────────────────────────────
@@ -70,8 +124,6 @@ function buildLayout(breakEvenMonth, troughMonth, troughValue) {
     });
   }
 
-  // Only annotate the trough when the position is negative — a positive
-  // minimum is not a meaningful trough for this tool's audience.
   if (troughValue !== undefined && troughMonth !== undefined && troughValue < 0) {
     annotations.push({
       x: troughMonth, y: troughValue, xref: 'x', yref: 'y',
@@ -170,8 +222,8 @@ function renderScenario(scenario) {
   activeScenario = scenario;
   const chartPromise = renderChart(scenario);
   updateComparisonPanel(scenario);
+  renderLineItems(scenario);
 
-  // Update toggle button states
   document.querySelectorAll('.btn-scenario').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.scenario === scenario);
   });
@@ -184,14 +236,12 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('calculate-btn');
 
-  // Guard against Enter-key re-entry while a fetch is already in flight
   if (btn.disabled) return;
 
   const errorEl = document.getElementById('form-error');
   errorEl.textContent = '';
   clearFieldErrors();
 
-  // Collect form values
   const retailer   = document.getElementById('retailer').value;
   const doors      = parseInt(document.getElementById('doors').value, 10);
   const skus       = parseInt(document.getElementById('skus').value, 10);
@@ -201,7 +251,6 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
   const brokerRaw  = document.getElementById('broker_projection').value;
   const broker     = brokerRaw ? parseFloat(brokerRaw) : null;
 
-  // Per-field client-side validation (server validates too, but this gives instant feedback)
   let hasError = false;
   if (isNaN(doors))    { setFieldError('doors', 'Required'); hasError = true; }
   if (isNaN(skus))     { setFieldError('skus', 'Required'); hasError = true; }
@@ -227,7 +276,6 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
 
   const controller = new AbortController();
   const timeoutId  = setTimeout(() => controller.abort(), 30_000);
-  // Show cold-start hint after 2s — Fly.io auto-start can take a moment
   const coldStartId = setTimeout(() => {
     if (btn.disabled) btn.textContent = 'Calculating… (first load may take a moment)';
   }, 2_000);
@@ -250,17 +298,14 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
     }
 
     currentData = await res.json();
-    chartInitialized = false;  // next renderChart will call Plotly.newPlot for fresh layout
+    chartInitialized = false;
 
-    // Show results panel
     const panel = document.getElementById('results-panel');
     panel.classList.add('visible');
 
-    // Enable scenario and compare buttons
     document.querySelectorAll('.btn-scenario').forEach(b => b.disabled = false);
     document.getElementById('compare-btn').disabled = false;
 
-    // Render scenario, then scroll after Plotly draw completes
     await renderScenario(activeScenario);
 
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -330,7 +375,6 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
 
   btn.disabled = true;
   btn.textContent = 'Comparing…';
-  // Show cold-start hint after 2s — Fly.io auto-start can take a moment
   const coldStartId = setTimeout(() => {
     if (btn.disabled) btn.textContent = 'Comparing… (first load may take a moment)';
   }, 2_000);

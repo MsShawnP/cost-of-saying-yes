@@ -10,7 +10,7 @@ from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, field_validator, model_validator
 from model.calculator import calculate_all_scenarios, calculate_scenario
-from model.defaults import RETAILER_DEFAULTS, WEEKS_PER_MONTH
+from model.defaults import RETAILER_DEFAULTS, SCENARIO_MULTIPLIERS, WEEKS_PER_MONTH
 from model.excel import build_excel_workbook, workbook_to_bytes
 
 # Windows MIME fix — must run before StaticFiles mount
@@ -137,6 +137,56 @@ class ScenarioInput(BaseModel):
             * 12
             * self.unit_price_wholesale
         )
+
+
+def compute_line_items(inp: ScenarioInput, scenario: str) -> list[dict]:
+    """Decompose the model's costs into individual line items for the UI table."""
+    defaults = RETAILER_DEFAULTS[inp.retailer]
+    multipliers = SCENARIO_MULTIPLIERS[scenario]
+
+    velocity = inp.velocity_units_per_door_per_week * multipliers["velocity"]
+    cb_learning = defaults["chargeback_rate_learning"] * multipliers["chargeback_rate"]
+    cb_steady = defaults["chargeback_rate_steady"] * multipliers["chargeback_rate"]
+
+    units_per_month = inp.doors * inp.skus * velocity * WEEKS_PER_MONTH
+    gross_monthly = units_per_month * inp.unit_price_wholesale
+    gross_year1 = gross_monthly * 12
+
+    new_store = defaults["new_store_allowance_per_sku_per_door"] * inp.skus * inp.doors
+    slotting = defaults["slotting_per_sku"] * inp.skus
+    free_fills = inp.skus * inp.doors * defaults["units_per_case"] * inp.cogs_per_unit
+
+    trade_spend = gross_year1 * defaults["trade_spend_rate"]
+    learning_cb = gross_monthly * cb_learning * 3
+    steady_cb = gross_monthly * cb_steady * 9
+    broker = gross_year1 * defaults["broker_commission_rate"]
+    cogs = units_per_month * inp.cogs_per_unit * 12
+    ops = defaults["ops_overhead_monthly"] * 12
+
+    payment_lag = defaults["payment_lag_months"]
+    last_ded_rate = defaults["trade_spend_rate"] + cb_steady + defaults["broker_commission_rate"]
+    uncollected = gross_monthly * (1 - last_ded_rate) * payment_lag
+
+    trade_pct = f"{defaults['trade_spend_rate']:.0%}"
+    broker_pct = f"{defaults['broker_commission_rate']:.0%}"
+    ops_monthly = f"${defaults['ops_overhead_monthly']:,.0f}"
+
+    items = [{"label": "Gross Year 1 Revenue", "amount": round(gross_year1, 2)}]
+    if new_store > 0:
+        items.append({"label": "Upfront Allowances", "amount": round(-new_store, 2)})
+    if slotting > 0:
+        items.append({"label": "Slotting Fees", "amount": round(-slotting, 2)})
+    items.extend([
+        {"label": "Free Fills", "amount": round(-free_fills, 2)},
+        {"label": f"Trade Spend ({trade_pct} of gross)", "amount": round(-trade_spend, 2)},
+        {"label": "Learning-Curve Chargebacks (months 1–3)", "amount": round(-learning_cb, 2)},
+        {"label": "Ongoing Deductions (months 4–12)", "amount": round(-steady_cb, 2)},
+        {"label": f"Broker Commission ({broker_pct})", "amount": round(-broker, 2)},
+        {"label": "COGS", "amount": round(-cogs, 2)},
+        {"label": f"Ops Overhead ({ops_monthly}/mo)", "amount": round(-ops, 2)},
+        {"label": "Cash Collection Lag (payment terms)", "amount": round(-uncollected, 2)},
+    ])
+    return items
 
 
 RETAILER_LABELS = {
@@ -272,7 +322,12 @@ def calculate(inp: ScenarioInput):
             velocity_units_per_door_per_week=inp.velocity_units_per_door_per_week,
             broker_projection_year1=inp.effective_broker_projection(),
         )
-        return {scenario: asdict(result) for scenario, result in results.items()}
+        response = {}
+        for scenario, result in results.items():
+            data = asdict(result)
+            data["line_items"] = compute_line_items(inp, scenario)
+            response[scenario] = data
+        return response
     except Exception:
         logger.exception("Calculation failed")
         raise HTTPException(status_code=500, detail="Calculation failed — please try again")
