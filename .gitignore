@@ -18,3 +18,8 @@ credentials.*
 # OS
 .DS_Store
 Thumbs.db
+
+# Security - secret leak prevention
+.env.*
+*.pem
+secrets.*
