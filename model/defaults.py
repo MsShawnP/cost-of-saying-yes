@@ -55,10 +55,11 @@ SCENARIO_MULTIPLIERS = {
     "pessimistic": {"velocity": 0.6, "chargeback_rate": 1.5},
 }
 
-# Validated Cinderhaven numbers — confirmed by $28M specialty food operator.
-# These are the AUTHORITATIVE case study figures. Use these for all copy and displays.
-#
-# Model reproduces both figures exactly with:
+# Cinderhaven case-study figures. These ARE the model's own output for the
+# Cinderhaven inputs (calculate_scenario on CINDERHAVEN_INPUTS, realistic scenario) —
+# not an external target the model is fitted to. Used for all case-study copy and displays.
+# The regression test in tests/test_calculator.py pins gross revenue, net cash impact,
+# AND the peak trough (value + month) so copy and model cannot drift apart.
 #   payment_lag_months=1 (NET-30, Walmart specialty food terms)
 #   ops_overhead_monthly=3232 ($38,784/yr for 1,200-door account management)
 CINDERHAVEN_VALIDATED = {
@@ -73,6 +74,9 @@ CINDERHAVEN_VALIDATED = {
     "broker_commission": -24_960,
     "cogs": -224_640,
     "net_cash_impact_year1": -36_320,
-    "peak_cash_trough": -165_000,
-    "peak_cash_trough_month": 4,
+    # Peak trough is structurally Month 1: upfront costs (free fills + allowances)
+    # land pre-launch and no cash arrives until Month 2, so the cumulative position
+    # is deepest immediately, then climbs back each month.
+    "peak_cash_trough": -156_352,
+    "peak_cash_trough_month": 1,
 }

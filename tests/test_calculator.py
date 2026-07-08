@@ -227,6 +227,26 @@ class TestCinderhavenValidatedRegression:
             f"validated={CINDERHAVEN_VALIDATED['net_cash_impact_year1']}"
         )
 
+    def test_trough_value_matches_validated(self):
+        """Pins the peak trough VALUE the case study prints (index.html) to the model."""
+        from model.defaults import CINDERHAVEN_VALIDATED
+        result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
+        assert result.trough_value == CINDERHAVEN_VALIDATED["peak_cash_trough"], (
+            f"trough_value mismatch: model={result.trough_value}, "
+            f"validated={CINDERHAVEN_VALIDATED['peak_cash_trough']}"
+        )
+
+    def test_trough_month_matches_validated(self):
+        """Pins the peak trough MONTH. Prior copy claimed Month 4; the model puts it
+        at Month 1 (upfront costs land pre-launch, first cash arrives Month 2)."""
+        from model.defaults import CINDERHAVEN_VALIDATED
+        result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
+        assert result.trough_month == CINDERHAVEN_VALIDATED["peak_cash_trough_month"], (
+            f"trough_month mismatch: model={result.trough_month}, "
+            f"validated={CINDERHAVEN_VALIDATED['peak_cash_trough_month']}"
+        )
+        assert result.trough_value == min(result.cumulative_cash_position)
+
 
 # ---------------------------------------------------------------------------
 # Pydantic input validation

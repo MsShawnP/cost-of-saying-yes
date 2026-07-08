@@ -10,7 +10,7 @@ Enter your retailer, door count, SKU count, wholesale price, COGS, and velocity.
 
 ## Why it matters
 
-Retail launches rarely fail on revenue — they fail on cash. Slotting fees, free-fill product, and chargebacks land months before the first payment clears, so a launch that looks profitable on an annual P&L can leave a $3M–$20M brand insolvent in month four. A founder who can see the depth and timing of the cash trough *before* signing can negotiate terms, stage the door rollout, or line up financing — instead of discovering the gap when payroll is due. The exported Excel model gives the CFO (or the bank) the same numbers in a format they can interrogate.
+Retail launches rarely fail on revenue — they fail on cash. Slotting fees, free-fill product, and chargebacks land before the first payment clears, so a launch that looks profitable on an annual P&L can leave a $3M–$20M brand short of cash in the opening months, when the cash trough is deepest. A founder who can see the depth and timing of the cash trough *before* signing can negotiate terms, stage the door rollout, or line up financing — instead of discovering the gap when payroll is due. The exported Excel model gives the CFO (or the bank) the same numbers in a format they can interrogate.
 
 ## Quick start
 
