@@ -106,6 +106,8 @@ Both U2 (Python model) and U5 (frontend JS) must conform to this shape exactly. 
 }
 ```
 
+> **[superseded 2026-07]** The `trough_month` / `trough_value` in the shape above (Month 4 / -$165,000) reflect the original **incorrect** target. The corrected model produces a cash trough of **-$156,352 at Month 1** (per the CINDERHAVEN_VALIDATED fixture and shipped output).
+
 `break_even_month` is `null` if cumulative cash never crosses zero within 12 months.
 
 ---
@@ -549,9 +551,9 @@ The case study is pure static HTML. No JavaScript, no dynamic rendering. Validat
 | Broker Commission (5%) | -$24,960 |
 | COGS | -$224,640 |
 | **Net Year 1 Cash Impact** | **-$36,320** |
-| **Peak Cash Trough (Month 4)** | **-$165,000** |
+| **Peak Cash Trough (Month 4)** | **-$165,000** [superseded 2026-07: original (incorrect) target; corrected model produces **-$156,352 at Month 1**] |
 
-**Voice:** Sober, declarative, data-forward. "The brand requires $165,000 in working capital to fund the Walmart launch through Month 4. Revenue recognition and cash collection are not the same thing." No marketing language.
+**Voice:** Sober, declarative, data-forward. "The brand requires $165,000 in working capital to fund the Walmart launch through Month 4. Revenue recognition and cash collection are not the same thing." No marketing language. [superseded 2026-07: the $165,000 / Month 4 figures in this example voice were the original incorrect target; the corrected model produces -$156,352 at Month 1.]
 
 **Test scenarios:**
 - Case study section renders below the interactive tool
