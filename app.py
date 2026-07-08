@@ -127,6 +127,10 @@ class ScenarioInput(BaseModel):
         return self
 
     def effective_broker_projection(self) -> float:
+        # When no broker figure is supplied, fall back to the model's OWN gross
+        # revenue. This is not an independent projection — the UI labels the
+        # comparison "Modeled Gross Revenue" in that case (see updateComparisonPanel
+        # in static/app.js) so it is not passed off as a third-party number.
         if self.broker_projection_year1 is not None:
             return self.broker_projection_year1
         return (

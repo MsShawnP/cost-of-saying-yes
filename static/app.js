@@ -5,6 +5,7 @@
 // ── State ──────────────────────────────────────────────────────────────────
 let currentData = null;        // all three scenario results from the API
 let activeScenario = 'realistic';
+let brokerProvided = false;    // did the user enter a broker figure, or is the left column the modeled gross?
 let chartInitialized = false;       // tracks whether Plotly.newPlot has been called
 let resizeListenerAttached = false; // ensures the resize listener is added exactly once
 
@@ -207,7 +208,19 @@ function renderChart(scenario) {
 function updateComparisonPanel(scenario) {
   const summary = currentData[scenario].summary;
   const brokerEl  = document.getElementById('broker-projection-value');
+  const brokerLabelEl = document.getElementById('broker-projection-label');
+  const brokerSubEl   = document.getElementById('broker-projection-sub');
   const cashEl    = document.getElementById('net-cash-value');
+
+  // When no broker figure is entered, the left column is the model's OWN gross
+  // revenue — label it as such so it is not passed off as an independent number.
+  if (brokerProvided) {
+    brokerLabelEl.textContent = "Broker's Projection";
+    brokerSubEl.textContent = 'Year 1 gross revenue';
+  } else {
+    brokerLabelEl.textContent = 'Modeled Gross Revenue';
+    brokerSubEl.textContent = 'No broker figure entered';
+  }
 
   brokerEl.textContent = formatCurrency(summary.broker_projection_year1);
   brokerEl.classList.remove('negative');
@@ -265,6 +278,8 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
 
   btn.disabled = true;
   btn.textContent = 'Calculating…';
+
+  brokerProvided = broker !== null;
 
   const payload = {
     retailer, doors, skus,
