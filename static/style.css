@@ -233,11 +233,22 @@ h2 {
 #compare-section.visible { display: block; }
 
 /* ── Chart ─────────────────────────────────────────────────── */
+.chart-title {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-ink);
+  margin-bottom: 12px;
+}
+
 #cashflow-chart {
   width: 100%;
   height: 420px;
-  margin-bottom: 32px;
+  margin-bottom: 8px;
 }
+
+.chart-footnote { margin-top: 8px; }
 
 /* ── Comparison panel (dark card) ──────────────────────────── */
 .comparison-panel {
