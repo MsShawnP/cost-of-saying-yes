@@ -79,4 +79,10 @@ CINDERHAVEN_VALIDATED = {
     # is deepest immediately, then climbs back each month.
     "peak_cash_trough": -156_352,
     "peak_cash_trough_month": 1,
+    # Working-capital timing vs P&L. The -$36,320 year-1 ending position is ~94%
+    # a reversing receivable: the Month-12 net invoice is collected in Month 13,
+    # one month outside the 12-month window. Backing it out, Year 1 nets to roughly
+    # breakeven and the account runs cash-positive in steady state. Pinned by test.
+    "outstanding_receivable_month12": 34_112,   # net invoice still uncollected at year end
+    "year1_pl_ex_timing": -2_208,               # net_cash_impact + outstanding receivable
 }

@@ -6,7 +6,7 @@ An interactive tool that models the actual first-year economics of a major retai
 
 ## What it does
 
-Enter your retailer, door count, SKU count, wholesale price, COGS, and velocity. The tool runs a month-by-month cash flow model showing the cumulative cash position across three scenarios (optimistic / realistic / pessimistic), annotates the peak cash trough and break-even month, and downloads a CFO-grade 4-tab Excel model. A Cinderhaven Provisions case study — a brand that saw $499K in projected revenue turn into a −$36K cash year — anchors the numbers to reality.
+Enter your retailer, door count, SKU count, wholesale price, COGS, and velocity. The tool runs a month-by-month cash flow model showing the cumulative cash position across three scenarios (optimistic / realistic / pessimistic), annotates the peak cash trough and break-even month, and downloads a CFO-grade 4-tab Excel model. A Cinderhaven Provisions case study — a $499K projected first year that needs $156K of working capital at its cash trough — anchors the numbers to reality.
 
 ## Why it matters
 

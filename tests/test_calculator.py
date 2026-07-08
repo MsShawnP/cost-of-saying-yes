@@ -247,6 +247,29 @@ class TestCinderhavenValidatedRegression:
         )
         assert result.trough_value == min(result.cumulative_cash_position)
 
+    def test_year1_ending_position_is_mostly_reversing_receivable(self):
+        """The -$36,320 year-1 ending position is ~94% timing: the Month-12 net
+        invoice is collected in Month 13, outside the window. Backing it out, Year 1
+        nets to roughly breakeven (-$2,208). Computed from the model, not asserted."""
+        from model.defaults import CINDERHAVEN_VALIDATED
+        result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
+        net = result.summary["net_cash_impact_year1"]
+        # Month-12 net invoice (collected Month 13 under the 1-month lag) is the
+        # receivable still outstanding at year end.
+        outstanding = round(result.gross_revenue[11] - result.deductions[11], 2)
+        assert outstanding == CINDERHAVEN_VALIDATED["outstanding_receivable_month12"]
+        assert round(net + outstanding, 2) == CINDERHAVEN_VALIDATED["year1_pl_ex_timing"]
+        # the reversing receivable is ~94% of the headline year-1 figure
+        assert 0.90 < outstanding / abs(net) < 0.98
+
+    def test_account_is_cash_positive_in_steady_state(self):
+        """Once collections catch up (months 5-12), each month adds cash — the
+        launch is a working-capital timing problem, not a P&L loss."""
+        result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
+        cum = result.cumulative_cash_position
+        monthly_deltas = [cum[m] - cum[m - 1] for m in range(5, 12)]
+        assert all(d > 0 for d in monthly_deltas)
+
 
 # ---------------------------------------------------------------------------
 # Pydantic input validation
