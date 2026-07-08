@@ -10,7 +10,7 @@ let resizeListenerAttached = false; // ensures the resize listener is added exac
 
 // ── Retailer context callout ───────────────────────────────────────────────
 const RETAILER_CONTEXT = {
-  walmart:        '60-day payment terms, 12% trade spend in months 1–3, and free fills (1 case/SKU/door) before any revenue arrives.',
+  walmart:        'Net-30 payment terms, 12% trade spend in months 1–3, and free fills (1 case/SKU/door) before any revenue arrives.',
   whole_foods:    'No new-store allowances, but $5,000 slotting per SKU is due at listing. UNFI\'s 30-day terms ease the cash cycle relative to Walmart.',
   costco:         'No slotting, low 6% trade spend, 30-day terms — but $3,500/mo operational overhead and 2-unit packs change the per-door economics significantly.',
   regional_chain: 'Lower volume, more forgiving terms: $1,500 slotting per SKU, 8% trade spend, and under 1% steady-state deductions.',
