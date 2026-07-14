@@ -223,6 +223,7 @@ h2 {
 }
 
 .btn-scenario:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-scenario:focus-visible { outline: 2px solid var(--color-text); outline-offset: 2px; }
 
 /* ── Results panel ─────────────────────────────────────────── */
 #results-panel { display: none; }
@@ -329,6 +330,8 @@ h2 {
   color: #fff;
 }
 
+.btn-download:focus-visible { outline: 2px solid var(--color-text); outline-offset: 2px; }
+
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .container { padding: 32px 16px; }
@@ -370,6 +373,7 @@ h2 {
   color: var(--color-navy);
   border-bottom-color: var(--color-navy);
 }
+.page-tab:focus-visible { outline: 2px solid var(--color-text); outline-offset: 2px; }
 
 .tab-pane { display: none; }
 .tab-pane.active { display: block; }
