@@ -30,47 +30,47 @@ def _register_styles(wb: Workbook) -> None:
 
     # Header style — navy background, white bold text
     header = NamedStyle(name="header")
-    header.font = Font(name="Calibri", bold=True, color=WHITE, size=11)
+    header.font = Font(name="Source Sans 3", bold=True, color=WHITE, size=11)
     header.fill = PatternFill(fill_type="solid", fgColor=NAVY)
     header.alignment = Alignment(horizontal="center", vertical="center")
     wb.add_named_style(header)
 
     # Sub-header — light gray background
     sub_header = NamedStyle(name="sub_header")
-    sub_header.font = Font(name="Calibri", bold=True, size=10)
+    sub_header.font = Font(name="Source Sans 3", bold=True, size=11)
     sub_header.fill = PatternFill(fill_type="solid", fgColor=LIGHT_GRAY)
     sub_header.alignment = Alignment(horizontal="center")
     wb.add_named_style(sub_header)
 
     # Currency — $#,##0
     currency = NamedStyle(name="currency")
-    currency.font = Font(name="Calibri", size=10)
+    currency.font = Font(name="Source Sans 3", size=11)
     currency.number_format = '"$"#,##0'
     currency.alignment = Alignment(horizontal="right")
     wb.add_named_style(currency)
 
     # Negative currency — red parentheses for negative values
     neg_currency = NamedStyle(name="neg_currency")
-    neg_currency.font = Font(name="Calibri", size=10)
+    neg_currency.font = Font(name="Source Sans 3", size=11)
     neg_currency.number_format = '"$"#,##0;[Red]("$"#,##0)'
     neg_currency.alignment = Alignment(horizontal="right")
     wb.add_named_style(neg_currency)
 
     # Percentage
     pct = NamedStyle(name="pct")
-    pct.font = Font(name="Calibri", size=10)
+    pct.font = Font(name="Source Sans 3", size=11)
     pct.number_format = "0.0%"
     pct.alignment = Alignment(horizontal="right")
     wb.add_named_style(pct)
 
     # Plain text
     plain = NamedStyle(name="plain")
-    plain.font = Font(name="Calibri", size=10)
+    plain.font = Font(name="Source Sans 3", size=11)
     wb.add_named_style(plain)
 
     # Bold plain
     bold_plain = NamedStyle(name="bold_plain")
-    bold_plain.font = Font(name="Calibri", bold=True, size=10)
+    bold_plain.font = Font(name="Source Sans 3", bold=True, size=11)
     wb.add_named_style(bold_plain)
 
 
