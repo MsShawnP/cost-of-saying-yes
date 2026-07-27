@@ -96,6 +96,11 @@ Each entry:
 - **Scope:** `app.py` input models.
 - **Do not:** Re-duplicate validators into a standalone model. If a field genuinely needs to differ between endpoints, override just that field/validator in the subclass — don't fork the whole model.
 
+### 2026-07-27 — Breakeven velocity rounds UP to the nearest cent, never `round()`
+- **Why:** The reported breakeven must itself net ≥ 0. Nearest-rounding (`round(hi, 2)`) can land a hair below the true crossover and report a velocity at which the model still loses money (2.53 nets −$51; 2.54 nets +$633). A breakeven that doesn't break even makes a CFO-credible tool contradict itself. `math.ceil(round(hi, 6) * 100) / 100` guarantees the figure clears zero. Pinned by `test_reported_breakeven_actually_breaks_even`.
+- **Scope:** `model/calculator.py` `calculate_breakeven_velocity` and any future "minimum X to reach non-negative Y" solver.
+- **Do not:** Switch back to `round()`/`floor` for the reported crossover. If precision changes, keep the round-UP direction and re-run the `net(breakeven) ≥ 0` test.
+
 ### 2026-05-27 — /api/compare runs realistic scenario only, sorted best-to-worst by net cash Y1
 - **Why:** A CFO scanning retailer options wants to see the most likely outcome, not optimistic/pessimistic variants — those belong in the per-retailer deep dive via `/api/calculate`. Sorting best-to-worst (highest `net_cash_impact_year1` first) surfaces the most favorable option immediately without requiring the reader to scan.
 - **Scope:** `POST /api/compare` response shape and sort order.

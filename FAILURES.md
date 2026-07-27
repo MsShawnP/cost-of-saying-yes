@@ -131,6 +131,30 @@ quarto" or "scope, scrollytelling, decoration"]
 
 **Tags:** ce-review, compaction, false-positive, code-review, agents, context-loss
 
+### 2026-07-27 — Breakeven-velocity solver rounded DOWN, reporting a velocity that still loses money
+
+**Attempted:** `calculate_breakeven_velocity` bisected for the crossover where realistic Year-1 net cash ≥ 0, then returned `round(hi, 2)`.
+
+**Why it didn't work:** `round()` rounds toward the true crossover from above, landing *below* it. For Cinderhaven it reported 2.53, but the model nets −$51 at 2.53 (only +$633 at 2.54). A CFO reading "you need 2.53 to break even," typing 2.53, and seeing −$51 catches the tool contradicting itself — a directional error on a tool whose whole thesis is "the number tells the truth." Caught in code review, not by the original test (the pin locked in the wrong-direction value).
+
+**What we tried instead:** `math.ceil(round(hi, 6) * 100) / 100` — round the crossover UP to the nearest cent so the reported figure itself clears breakeven. Updated pins to 2.54; added a test asserting `net(breakeven) ≥ 0`.
+
+**Status:** Resolved
+
+**Tags:** breakeven, rounding, bisection, calculator, cfo-credibility, code-review
+
+### 2026-07-27 — Live-recompute shipped with a response race
+
+**Attempted:** The verdict-first redesign recomputes live on every input change via a 350ms `debounce` around `runCalculation`, each call building its own `AbortController`.
+
+**Why it didn't work:** Debounce only delays *scheduling*; it doesn't serialize *in-flight* requests. When two calls overlap (Fly cold start, or a slow reply), whichever response *arrives last* wins — so a stale reply can overwrite fresh state and paint numbers that don't match the form, while the "Live" flag says all-current. Self-heals on the next keystroke, but a screenshotted mismatch is exactly the credibility failure the tool exists to avoid.
+
+**What we tried instead:** A module-level monotonic `calcSeq` id captured per call; the response (and the error/failure branches) only apply if `seq === calcSeq`, otherwise they return and let the newer request own the UI.
+
+**Status:** Resolved
+
+**Tags:** javascript, race-condition, debounce, fetch, live-recompute, state-management
+
 ### 2026-06-23 — FastAPI StaticFiles caches stale CSS and JS during development
 
 **Attempted:** Rewrote `static/style.css` (added tab rules) and `static/app.js` (added `renderLineItems`, tab switching, `formatTableCurrency`). Expected the preview server to serve the updated files.

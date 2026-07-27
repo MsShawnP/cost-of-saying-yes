@@ -59,6 +59,14 @@ check again.
 
 <!-- Entries are added by /improve — don't delete this section -->
 
+### 2026-07-27 — Improvement pass (full: audit + fix + deploy)
+- **Trigger:** User-initiated (improve + code review + UI review, run twice — before and after shipping the verdict-first redesign).
+- **What was reviewed:** Python backend, frontend + security, and UI 30-second clarity, via two parallel reviewers plus a manual browser pass.
+- **What was fixed:** All 8 findings — breakeven rounded down (2.53→2.54, a real credibility bug), live-recompute response race, sensitivity NaN mis-branch, CSP/HSTS hardening, stale CORS domain, docstring, dedup (`LaunchInputBase` + shared JS fetch helpers + reconciliation guard test), verdict placeholder copy. Two decisions reversed and documented (validator dedup, CSP script-src).
+- **Result:** 76/76 tests (was 66 at session start). UI 30-second test now passes. Pushed and deployed; live verified.
+- **Deferred:** True single-sourcing of `compute_line_items` (guarded by a reconciliation test, not rewritten).
+- **Next review:** 2026-10-25 (stable — 90-day cadence).
+
 ### 2026-05-27 — Audit (full improve, fixes deferred to Arc 3)
 - **Findings:** 1 critical, 6 important, 7 nice-to-have
 - **Top concerns:** inf/nan crash path bypasses validators; Excel per-scenario deduction rows render black not red; no fetch timeout for cold-start UX; dev dependencies undeclared

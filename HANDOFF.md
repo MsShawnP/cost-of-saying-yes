@@ -359,3 +359,15 @@ work.
 **Next:** `fly deploy` to push the breakeven fix (2.53→2.54) and hardening live, then verify.
 
 ---
+
+## 2026-07-27 — Session wrap
+
+**Started from:** Tool complete/deployed (Arc 8), no active arc. Asked to run improve + code review + UI review.
+
+**Did:** Ran the review sweep, shipped the verdict-first redesign + a new breakeven-velocity sensitivity feature, re-reviewed, then fixed all 8 findings (two real bugs of my own: breakeven rounding down, live-recompute response race). Pushed and deployed both changesets.
+
+**State:** 76/76 tests. Live at launch-cost.lailarallc.com — breakeven 2.54, HSTS + tightened CSP confirmed, Plotly renders. `origin/main` at `69e34cf` (before this wrap commit). No broken states.
+
+**Next:** Code done and shipped. Real next work is Arc 7 — lead-gen push (LinkedIn + operator outreach), no code. Optional follow-up: true single-sourcing of `compute_line_items` (currently a reconciliation-test guard, not a rewrite).
+
+---
