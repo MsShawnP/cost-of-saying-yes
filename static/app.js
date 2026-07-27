@@ -1,13 +1,30 @@
-/* cost-of-saying-yes — main app JS */
+/* cost-of-saying-yes — main app JS (live model) */
 
 'use strict';
 
 // ── State ──────────────────────────────────────────────────────────────────
 let currentData = null;        // all three scenario results from the API
 let activeScenario = 'realistic';
-let brokerProvided = false;    // did the user enter a broker figure, or is the left column the modeled gross?
+let brokerProvided = true;     // did the user enter a broker figure, or is the left column the modeled gross?
 let chartInitialized = false;       // tracks whether Plotly.newPlot has been called
 let resizeListenerAttached = false; // ensures the resize listener is added exactly once
+
+// The Cinderhaven worked example — the tool loads pre-filled with this so it is
+// never an empty form. "Reset to example" restores it.
+const EXAMPLE_INPUTS = {
+  retailer: 'walmart',
+  doors: '1200',
+  skus: '4',
+  unit_price_wholesale: '1.00',
+  cogs_per_unit: '0.45',
+  velocity: '2.0',
+  broker_projection: '499200',
+};
+
+const LIVE_INPUT_IDS = [
+  'retailer', 'doors', 'skus', 'unit_price_wholesale',
+  'cogs_per_unit', 'velocity', 'broker_projection',
+];
 
 // ── Retailer context callout ───────────────────────────────────────────────
 const RETAILER_CONTEXT = {
@@ -22,23 +39,27 @@ function updateRetailerContext(value) {
   if (el) el.textContent = RETAILER_CONTEXT[value] || '';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const retailerSelect = document.getElementById('retailer');
-  updateRetailerContext(retailerSelect.value);
-  retailerSelect.addEventListener('change', e => updateRetailerContext(e.target.value));
+// ── Live-state flag ─────────────────────────────────────────────────────────
+function setLive(state) {
+  const el = document.getElementById('live-flag');
+  if (!el) return;
+  el.classList.remove('stale');
+  if (state === 'calc') {
+    el.textContent = 'Updating…';
+  } else if (state === 'offline') {
+    el.textContent = 'Couldn’t reach the server — showing last result';
+    el.classList.add('stale');
+  } else {
+    el.textContent = 'Live · updates as you type';
+  }
+}
 
-  // Tab switching
-  document.querySelectorAll('.page-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-    });
-  });
-});
+// ── Small utilities ─────────────────────────────────────────────────────────
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
 
-// ── Field-level validation helpers ────────────────────────────────────────
 function setFieldError(fieldId, msg) {
   const el = document.getElementById(`${fieldId}-error`);
   if (el) el.textContent = msg;
@@ -72,6 +93,84 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// ── Verdict hero (the live answer) ──────────────────────────────────────────
+function buildVerdictLine(d) {
+  const trough = d.trough_value;
+  const net    = d.summary.net_cash_impact_year1;
+  const broker = d.summary.broker_projection_year1;
+
+  if (trough >= 0) {
+    return `This launch never runs cash-negative — no working-capital gap in Year 1. ` +
+           `Net Year 1 cash impact lands at <strong>${formatTableCurrency(net)}</strong>.`;
+  }
+
+  let s = `You'd need <strong>${formatTableCurrency(Math.abs(trough))}</strong> in working ` +
+          `capital to fund this launch — deepest in Month ${d.trough_month}, before the ` +
+          `payment terms catch up.`;
+  s += d.break_even_month
+    ? ` It turns cash-positive by Month ${d.break_even_month}.`
+    : ` It does not turn cash-positive within Year 1.`;
+  if (brokerProvided) {
+    s += ` The ${formatTableCurrency(broker)} projection never shows it.`;
+  }
+  return s;
+}
+
+function updateVerdict(scenario) {
+  const d = currentData[scenario];
+  const summary = d.summary;
+
+  const brokerLabelEl = document.getElementById('verdict-broker-label');
+  const brokerValueEl = document.getElementById('verdict-broker-value');
+  const brokerSubEl   = document.getElementById('verdict-broker-sub');
+  const troughValueEl = document.getElementById('verdict-trough-value');
+  const troughSubEl   = document.getElementById('verdict-trough-sub');
+  const lineEl        = document.getElementById('verdict-line');
+
+  // When no broker figure is entered, the left column is the model's OWN gross
+  // revenue — label it as such so it is not passed off as an independent number.
+  if (brokerProvided) {
+    brokerLabelEl.textContent = "Broker's Projection";
+    brokerSubEl.textContent = 'Year 1 gross revenue';
+  } else {
+    brokerLabelEl.textContent = 'Modeled Gross Revenue';
+    brokerSubEl.textContent = 'No broker figure entered';
+  }
+  brokerValueEl.textContent = formatTableCurrency(summary.broker_projection_year1);
+
+  const trough = d.trough_value;
+  troughValueEl.textContent = formatTableCurrency(trough);
+  troughValueEl.classList.toggle('verdict-value--red', trough < 0);
+  troughSubEl.textContent = trough < 0
+    ? `Working capital at the trough — Month ${d.trough_month}`
+    : 'No working-capital gap in Year 1';
+
+  lineEl.innerHTML = buildVerdictLine(d);
+}
+
+// ── Breakeven-velocity sensitivity note ─────────────────────────────────────
+// Phrased against the current velocity input. breakeven_velocity is a top-level,
+// model-computed figure for the realistic scenario (null if it never breaks even).
+function updateSensitivity() {
+  const el = document.getElementById('verdict-sensitivity');
+  if (!el || !currentData) return;
+
+  const breakeven = currentData.breakeven_velocity;   // number or null
+  const current = parseFloat(document.getElementById('velocity').value);
+
+  if (breakeven === null || breakeven === undefined) {
+    el.textContent = "Doesn't reach Year-1 breakeven at any plausible velocity.";
+    return;
+  }
+
+  const be = breakeven.toFixed(1);
+  const cur = Number.isFinite(current) ? current.toFixed(1) : be;
+
+  el.textContent = breakeven > current
+    ? `Needs ~${be} units/door/week to break even in Year 1 — above the current ${cur} assumption.`
+    : `Stays cash-positive in Year 1 down to ~${be} units/door/week.`;
 }
 
 // ── Dynamic line-item table ───────────────────────────────────────────────
@@ -141,6 +240,7 @@ function buildLayout(breakEvenMonth, troughMonth, troughValue) {
     paper_bgcolor: '#f5f3ee',
     plot_bgcolor:  '#f5f3ee',
     margin: { t: 24, r: 24, b: 48, l: 80 },
+    transition: { duration: 350, easing: 'cubic-in-out' },
     xaxis: {
       title: { text: 'Month', font: { family: 'Source Sans 3, sans-serif', size: 12 } },
       tickfont: { family: 'Source Sans 3, sans-serif', size: 12 },
@@ -204,37 +304,12 @@ function renderChart(scenario) {
   return plotPromise;
 }
 
-// ── Comparison panel ───────────────────────────────────────────────────────
-function updateComparisonPanel(scenario) {
-  const summary = currentData[scenario].summary;
-  const brokerEl  = document.getElementById('broker-projection-value');
-  const brokerLabelEl = document.getElementById('broker-projection-label');
-  const brokerSubEl   = document.getElementById('broker-projection-sub');
-  const cashEl    = document.getElementById('net-cash-value');
-
-  // When no broker figure is entered, the left column is the model's OWN gross
-  // revenue — label it as such so it is not passed off as an independent number.
-  if (brokerProvided) {
-    brokerLabelEl.textContent = "Broker's Projection";
-    brokerSubEl.textContent = 'Year 1 gross revenue';
-  } else {
-    brokerLabelEl.textContent = 'Modeled Gross Revenue';
-    brokerSubEl.textContent = 'No broker figure entered';
-  }
-
-  brokerEl.textContent = formatCurrency(summary.broker_projection_year1);
-  brokerEl.classList.remove('negative');
-
-  const netCash = summary.net_cash_impact_year1;
-  cashEl.textContent = formatCurrency(netCash);
-  cashEl.classList.toggle('negative', netCash < 0);
-}
-
 // ── Scenario switch ────────────────────────────────────────────────────────
 function renderScenario(scenario) {
   activeScenario = scenario;
   const chartPromise = renderChart(scenario);
-  updateComparisonPanel(scenario);
+  updateVerdict(scenario);
+  updateSensitivity();
   renderLineItems(scenario);
 
   document.querySelectorAll('.btn-scenario').forEach(btn => {
@@ -244,56 +319,62 @@ function renderScenario(scenario) {
   return chartPromise;
 }
 
-// ── Form submission ────────────────────────────────────────────────────────
-document.getElementById('input-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('calculate-btn');
+// ── Read + validate inputs ──────────────────────────────────────────────────
+function readInputs() {
+  const retailer  = document.getElementById('retailer').value;
+  const doors     = parseInt(document.getElementById('doors').value, 10);
+  const skus      = parseInt(document.getElementById('skus').value, 10);
+  const price     = parseFloat(document.getElementById('unit_price_wholesale').value);
+  const cogs      = parseFloat(document.getElementById('cogs_per_unit').value);
+  const velocity  = parseFloat(document.getElementById('velocity').value);
+  const brokerRaw = document.getElementById('broker_projection').value;
+  const broker    = brokerRaw ? parseFloat(brokerRaw) : null;
+  return { retailer, doors, skus, price, cogs, velocity, broker };
+}
 
-  if (btn.disabled) return;
+function validateInputs(v) {
+  const errs = [];
+  if (!Number.isFinite(v.doors))    errs.push(['doors', 'Required']);
+  if (!Number.isFinite(v.skus))     errs.push(['skus', 'Required']);
+  if (!Number.isFinite(v.price))    errs.push(['unit_price_wholesale', 'Required']);
+  if (!Number.isFinite(v.cogs))     errs.push(['cogs_per_unit', 'Required']);
+  if (!Number.isFinite(v.velocity)) errs.push(['velocity', 'Required']);
+  if (errs.length) return errs;
+  if (v.cogs >= v.price) return [['cogs_per_unit', 'COGS must be less than wholesale price.']];
+  return null;
+}
 
+// ── Core: run the model and render everything ───────────────────────────────
+async function runCalculation({ source }) {
+  const silent = source === 'live' || source === 'load';
   const errorEl = document.getElementById('form-error');
-  errorEl.textContent = '';
   clearFieldErrors();
+  errorEl.textContent = '';
 
-  const retailer   = document.getElementById('retailer').value;
-  const doors      = parseInt(document.getElementById('doors').value, 10);
-  const skus       = parseInt(document.getElementById('skus').value, 10);
-  const price      = parseFloat(document.getElementById('unit_price_wholesale').value);
-  const cogs       = parseFloat(document.getElementById('cogs_per_unit').value);
-  const velocity   = parseFloat(document.getElementById('velocity').value);
-  const brokerRaw  = document.getElementById('broker_projection').value;
-  const broker     = brokerRaw ? parseFloat(brokerRaw) : null;
-
-  let hasError = false;
-  if (isNaN(doors))    { setFieldError('doors', 'Required'); hasError = true; }
-  if (isNaN(skus))     { setFieldError('skus', 'Required'); hasError = true; }
-  if (isNaN(price))    { setFieldError('unit_price_wholesale', 'Required'); hasError = true; }
-  if (isNaN(cogs))     { setFieldError('cogs_per_unit', 'Required'); hasError = true; }
-  if (isNaN(velocity)) { setFieldError('velocity', 'Required'); hasError = true; }
-  if (hasError) return;
-  if (cogs >= price) {
-    setFieldError('cogs_per_unit', 'COGS must be less than wholesale price.');
-    return;
+  const inputs = readInputs();
+  const errs = validateInputs(inputs);
+  if (errs) {
+    errs.forEach(([field, msg]) => setFieldError(field, msg));
+    if (!silent) errorEl.textContent = 'Please fix the highlighted fields.';
+    setLive('live');
+    return;   // keep the last good chart/verdict on screen
   }
 
-  btn.disabled = true;
-  btn.textContent = 'Calculating…';
-
-  brokerProvided = broker !== null;
+  brokerProvided = inputs.broker !== null;
+  setLive('calc');
 
   const payload = {
-    retailer, doors, skus,
-    unit_price_wholesale: price,
-    cogs_per_unit: cogs,
-    velocity_units_per_door_per_week: velocity,
+    retailer: inputs.retailer,
+    doors: inputs.doors,
+    skus: inputs.skus,
+    unit_price_wholesale: inputs.price,
+    cogs_per_unit: inputs.cogs,
+    velocity_units_per_door_per_week: inputs.velocity,
   };
-  if (broker !== null) payload.broker_projection_year1 = broker;
+  if (inputs.broker !== null) payload.broker_projection_year1 = inputs.broker;
 
   const controller = new AbortController();
   const timeoutId  = setTimeout(() => controller.abort(), 30_000);
-  const coldStartId = setTimeout(() => {
-    if (btn.disabled) btn.textContent = 'Calculating… (first load may take a moment)';
-  }, 2_000);
 
   try {
     const res = await fetch('/api/calculate', {
@@ -308,43 +389,105 @@ document.getElementById('input-form').addEventListener('submit', async (e) => {
       const detail = Array.isArray(err.detail)
         ? err.detail.map(d => d.msg).join('; ')
         : (err.detail || `Server error (${res.status})`);
-      errorEl.textContent = detail;
+      if (res.status === 422) {         // input out of range — show it, stay live
+        errorEl.textContent = detail;
+        setLive('live');
+      } else if (silent) {
+        setLive('offline');
+      } else {
+        errorEl.textContent = detail;
+        setLive('live');
+      }
       return;
     }
 
     currentData = await res.json();
-    chartInitialized = false;
-
-    const panel = document.getElementById('results-panel');
-    panel.classList.add('visible');
-
-    document.querySelectorAll('.btn-scenario').forEach(b => b.disabled = false);
-    document.getElementById('compare-btn').disabled = false;
-
+    document.getElementById('results-panel').classList.add('visible');
     await renderScenario(activeScenario);
-
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    panel.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
+    setLive('live');
 
   } catch (err) {
-    if (err.name === 'AbortError') {
-      errorEl.textContent = 'Request timed out — the server may be starting up. Please try again.';
+    if (silent) {
+      setLive('offline');
     } else {
-      errorEl.textContent = 'Network error — is the server running?';
+      errorEl.textContent = (err.name === 'AbortError')
+        ? 'Request timed out — the server may be starting up. Please try again.'
+        : 'Network error — is the server running?';
+      setLive('live');
     }
   } finally {
     clearTimeout(timeoutId);
-    clearTimeout(coldStartId);
-    btn.disabled = false;
-    btn.textContent = 'Calculate';
   }
-});
+}
 
-// ── Scenario toggle ────────────────────────────────────────────────────────
-document.querySelectorAll('.btn-scenario').forEach(btn => {
-  btn.addEventListener('click', () => {
-    if (currentData) renderScenario(btn.dataset.scenario);
+const debouncedRun = debounce(() => runCalculation({ source: 'live' }), 350);
+
+// ── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.page-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  const pane = document.getElementById('tab-' + name);
+  if (pane) pane.classList.add('active');
+  if (name === 'model' && chartInitialized && window.Plotly) {
+    Plotly.Plots.resize('cashflow-chart');
+  }
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  updateRetailerContext(document.getElementById('retailer').value);
+
+  document.querySelectorAll('.page-tab').forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
   });
+
+  const csRun = document.getElementById('cs-run-btn');
+  if (csRun) csRun.addEventListener('click', () => {
+    switchTab('model');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Reactive inputs — recompute live on any change
+  LIVE_INPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const evt = el.tagName === 'SELECT' ? 'change' : 'input';
+    el.addEventListener(evt, () => {
+      if (id === 'retailer') updateRetailerContext(el.value);
+      debouncedRun();
+    });
+  });
+
+  // Reset to the Cinderhaven example
+  const resetBtn = document.getElementById('reset-btn');
+  if (resetBtn) resetBtn.addEventListener('click', () => {
+    Object.entries(EXAMPLE_INPUTS).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    });
+    updateRetailerContext(document.getElementById('retailer').value);
+    clearFieldErrors();
+    document.getElementById('form-error').textContent = '';
+    activeScenario = 'realistic';   // the canonical example is the realistic case
+    runCalculation({ source: 'live' });
+  });
+
+  // Enter key inside the form triggers an explicit recompute
+  document.getElementById('input-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    runCalculation({ source: 'submit' });
+  });
+
+  // Scenario toggle
+  document.querySelectorAll('.btn-scenario').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (currentData) renderScenario(btn.dataset.scenario);
+    });
+  });
+
+  // Hydrate on load — the verdict card already shows the example numbers, so a
+  // slow/cold server never leaves the user staring at nothing.
+  runCalculation({ source: 'load' });
 });
 
 // ── Retailer comparison table ──────────────────────────────────────────────
@@ -375,15 +518,8 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
   const errorEl = document.getElementById('form-error');
   errorEl.textContent = '';
 
-  const doors    = parseInt(document.getElementById('doors').value, 10);
-  const skus     = parseInt(document.getElementById('skus').value, 10);
-  const price    = parseFloat(document.getElementById('unit_price_wholesale').value);
-  const cogs     = parseFloat(document.getElementById('cogs_per_unit').value);
-  const velocity = parseFloat(document.getElementById('velocity').value);
-  const brokerRaw = document.getElementById('broker_projection').value;
-  const broker   = brokerRaw ? parseFloat(brokerRaw) : null;
-
-  if (!doors || !skus || !price || !cogs || !velocity) {
+  const v = readInputs();
+  if (validateInputs(v)) {
     errorEl.textContent = 'Please fill in all required fields before comparing.';
     return;
   }
@@ -395,12 +531,12 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
   }, 2_000);
 
   const payload = {
-    doors, skus,
-    unit_price_wholesale: price,
-    cogs_per_unit: cogs,
-    velocity_units_per_door_per_week: velocity,
+    doors: v.doors, skus: v.skus,
+    unit_price_wholesale: v.price,
+    cogs_per_unit: v.cogs,
+    velocity_units_per_door_per_week: v.velocity,
   };
-  if (broker !== null) payload.broker_projection_year1 = broker;
+  if (v.broker !== null) payload.broker_projection_year1 = v.broker;
 
   const controller = new AbortController();
   const timeoutId  = setTimeout(() => controller.abort(), 30_000);
@@ -447,24 +583,10 @@ document.getElementById('download-btn').addEventListener('click', async () => {
   errorEl.textContent = '';
   clearFieldErrors();
 
-  const retailer  = document.getElementById('retailer').value;
-  const doors     = parseInt(document.getElementById('doors').value, 10);
-  const skus      = parseInt(document.getElementById('skus').value, 10);
-  const price     = parseFloat(document.getElementById('unit_price_wholesale').value);
-  const cogs      = parseFloat(document.getElementById('cogs_per_unit').value);
-  const velocity  = parseFloat(document.getElementById('velocity').value);
-  const brokerRaw = document.getElementById('broker_projection').value;
-  const broker    = brokerRaw ? parseFloat(brokerRaw) : null;
-
-  let hasFieldError = false;
-  if (isNaN(doors))    { setFieldError('doors', 'Required'); hasFieldError = true; }
-  if (isNaN(skus))     { setFieldError('skus', 'Required'); hasFieldError = true; }
-  if (isNaN(price))    { setFieldError('unit_price_wholesale', 'Required'); hasFieldError = true; }
-  if (isNaN(cogs))     { setFieldError('cogs_per_unit', 'Required'); hasFieldError = true; }
-  if (isNaN(velocity)) { setFieldError('velocity', 'Required'); hasFieldError = true; }
-  if (hasFieldError) return;
-  if (cogs >= price) {
-    setFieldError('cogs_per_unit', 'COGS must be less than wholesale price.');
+  const v = readInputs();
+  const errs = validateInputs(v);
+  if (errs) {
+    errs.forEach(([field, msg]) => setFieldError(field, msg));
     return;
   }
 
@@ -472,12 +594,12 @@ document.getElementById('download-btn').addEventListener('click', async () => {
   btn.textContent = 'Generating…';
 
   const payload = {
-    retailer, doors, skus,
-    unit_price_wholesale: price,
-    cogs_per_unit: cogs,
-    velocity_units_per_door_per_week: velocity,
+    retailer: v.retailer, doors: v.doors, skus: v.skus,
+    unit_price_wholesale: v.price,
+    cogs_per_unit: v.cogs,
+    velocity_units_per_door_per_week: v.velocity,
   };
-  if (broker !== null) payload.broker_projection_year1 = broker;
+  if (v.broker !== null) payload.broker_projection_year1 = v.broker;
 
   const controller = new AbortController();
   const timeoutId  = setTimeout(() => controller.abort(), 30_000);

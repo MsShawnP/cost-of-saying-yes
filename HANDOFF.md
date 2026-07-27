@@ -335,3 +335,15 @@ work.
 **Next:** Arc 7 — lead gen push. Draft LinkedIn post + direct outreach to 5–10 CPG founders/operators. Tool is CFO-credible and ready to share.
 
 ---
+
+## 2026-07-27 — Verdict-first redesign shipped + breakeven-velocity feature
+
+**What changed:** Shipped the uncommitted verdict-first front-end redesign (hero card that opens on "Peak Financing Need vs Broker's Projection," pre-loaded Cinderhaven example, live recompute on every input change — no Calculate button). Added a breakeven-velocity sensitivity feature: `calculate_breakeven_velocity()` in `model/calculator.py` bisects for the lowest velocity where the realistic scenario's Year-1 net cash ≥ 0 (capped at MAX_VELOCITY=1000, returns None if it never recovers); `POST /api/calculate` returns it as a top-level `breakeven_velocity` field; `updateSensitivity()` in `app.js` renders a live one-line note in the verdict section phrased against the current velocity. Regression pins added at model level (`test_calculator.py`) and API level (`test_api.py`).
+
+**Why:** Redesign surfaces the CFO answer in under 30 seconds. The sensitivity line answers the obvious follow-up — "how much better does velocity have to be to not lose money?" — with a model-computed number, not a hardcoded one.
+
+**State:** 74/74 tests passing (was 66). Verified locally against a fresh server — trough −156,352, net −36,320, broker 499,200, breakeven_velocity 2.53. Both note branches confirmed live in-browser. Deployed to Fly.io.
+
+**Next:** (none — feature complete; back to Arc 7 lead-gen when ready).
+
+---

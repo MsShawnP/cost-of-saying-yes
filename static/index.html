@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Retailer Launch Cost Model — Lailara LLC</title>
-  <link rel="stylesheet" href="/style.css?v=2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231f2e7a'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='20' fill='%23ffffff' text-anchor='middle'%3EL%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css?v=3">
 </head>
 <body>
 <div class="container">
@@ -26,21 +27,52 @@
 
   <!-- Page tabs -->
   <div class="page-tabs">
-    <button class="page-tab active" data-tab="model">Your Model</button>
+    <button class="page-tab active" data-tab="model">Live Model</button>
     <button class="page-tab" data-tab="case-study">Case Study</button>
   </div>
 
-  <!-- YOUR MODEL tab -->
+  <!-- LIVE MODEL tab -->
   <div class="tab-pane active" id="tab-model">
 
-    <!-- Input form -->
+    <!-- Verdict hero — the answer, first thing on screen -->
+    <section id="verdict-section" aria-live="polite">
+      <div class="verdict-card">
+        <div class="verdict-col">
+          <div class="verdict-label" id="verdict-broker-label">Broker's Projection</div>
+          <div class="verdict-value" id="verdict-broker-value">$499,200</div>
+          <div class="verdict-sub" id="verdict-broker-sub">Year 1 gross revenue</div>
+        </div>
+        <div class="verdict-divider"></div>
+        <div class="verdict-col">
+          <div class="verdict-label">Peak Financing Need</div>
+          <div class="verdict-value verdict-value--red" id="verdict-trough-value">−$156,352</div>
+          <div class="verdict-sub" id="verdict-trough-sub">Working capital at the trough — Month 1</div>
+        </div>
+      </div>
+      <p class="verdict-line" id="verdict-line">
+        You'd need <strong>$156,352</strong> in working capital to fund this launch — deepest in
+        Month 1, before the first Walmart payment clears. It claws back near break-even by year-end,
+        but the $499,200 projection never shows the hole you have to finance first.
+      </p>
+      <p class="verdict-sensitivity" id="verdict-sensitivity"></p>
+    </section>
+
+    <!-- Live controls -->
+    <div class="controls-head">
+      <h3 class="controls-title">Model your launch</h3>
+      <p class="controls-note">
+        Pre-loaded with the Cinderhaven example below. Change any input — the numbers and chart
+        update as you type.
+      </p>
+    </div>
+
     <form id="input-form" novalidate>
       <div class="form-grid">
 
         <div class="form-field">
           <label for="retailer">Retailer</label>
           <select id="retailer" name="retailer">
-            <option value="walmart">Walmart</option>
+            <option value="walmart" selected>Walmart</option>
             <option value="whole_foods">Whole Foods</option>
             <option value="costco">Costco</option>
             <option value="regional_chain">Regional Chain</option>
@@ -51,7 +83,7 @@
         <div class="form-field">
           <label for="doors">Number of Doors</label>
           <input type="number" id="doors" name="doors" min="1" step="1"
-                 placeholder="e.g. 1200" required>
+                 value="1200" placeholder="e.g. 1200" required>
           <span class="field-hint">Stores stocking your product</span>
           <span class="field-error" id="doors-error"></span>
         </div>
@@ -59,7 +91,7 @@
         <div class="form-field">
           <label for="skus">SKU Count</label>
           <input type="number" id="skus" name="skus" min="1" step="1"
-                 placeholder="e.g. 4" required>
+                 value="4" placeholder="e.g. 4" required>
           <span class="field-hint">Distinct products (flavors, sizes)</span>
           <span class="field-error" id="skus-error"></span>
         </div>
@@ -67,7 +99,7 @@
         <div class="form-field">
           <label for="unit_price_wholesale">Wholesale Price / Unit ($)</label>
           <input type="number" id="unit_price_wholesale" name="unit_price_wholesale"
-                 min="0.01" step="0.01" placeholder="e.g. 1.00" required>
+                 min="0.01" step="0.01" value="1.00" placeholder="e.g. 1.00" required>
           <span class="field-hint">What the retailer pays you</span>
           <span class="field-error" id="unit_price_wholesale-error"></span>
         </div>
@@ -75,7 +107,7 @@
         <div class="form-field">
           <label for="cogs_per_unit">COGS / Unit ($)</label>
           <input type="number" id="cogs_per_unit" name="cogs_per_unit"
-                 min="0.01" step="0.01" placeholder="e.g. 0.45" required>
+                 min="0.01" step="0.01" value="0.45" placeholder="e.g. 0.45" required>
           <span class="field-hint">Your landed cost per unit</span>
           <span class="field-error" id="cogs_per_unit-error"></span>
         </div>
@@ -83,7 +115,7 @@
         <div class="form-field">
           <label for="velocity">Velocity (units / door / week)</label>
           <input type="number" id="velocity" name="velocity"
-                 min="0.01" step="0.1" placeholder="e.g. 2.0" required>
+                 min="0.01" step="0.1" value="2.0" placeholder="e.g. 2.0" required>
           <span class="field-hint">Expected weekly sell-through per store</span>
           <span class="field-error" id="velocity-error"></span>
         </div>
@@ -91,46 +123,27 @@
         <div class="form-field">
           <label for="broker_projection">Broker's Year 1 Projection ($)</label>
           <input type="number" id="broker_projection" name="broker_projection"
-                 min="0" step="100" placeholder="e.g. 499200">
-          <span class="field-hint">Optional — for the reality check comparison</span>
+                 min="0" step="100" value="499200" placeholder="e.g. 499200">
+          <span class="field-hint">Optional — the top-line number to reality-check</span>
         </div>
 
       </div>
 
-      <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
-        <button type="submit" class="btn-primary" id="calculate-btn">
-          Calculate
-        </button>
-        <span id="form-error" style="color:var(--color-red);font-size:14px;"></span>
+      <div class="controls-actions">
+        <button type="button" class="btn-reset" id="reset-btn">↺ Reset to Cinderhaven example</button>
+        <span class="live-flag" id="live-flag">Live · updates as you type</span>
+        <span id="form-error" class="form-error-text"></span>
       </div>
     </form>
 
-    <!-- Results panel (hidden until first calculation) -->
+    <!-- Results panel (revealed on first calculation, then live) -->
     <section id="results-panel">
-
-      <!-- Comparison panel -->
-      <div class="comparison-panel">
-        <div class="comparison-col">
-          <div class="comparison-label" id="broker-projection-label">Broker's Projection</div>
-          <div class="comparison-value" id="broker-projection-value">—</div>
-          <div class="comparison-sub" id="broker-projection-sub">Year 1 gross revenue</div>
-        </div>
-        <div class="comparison-divider"></div>
-        <div class="comparison-col">
-          <div class="comparison-label">Net Cash Impact</div>
-          <div class="comparison-value" id="net-cash-value">—</div>
-          <div class="comparison-sub">After all costs, year 1</div>
-        </div>
-      </div>
-
-      <!-- Dynamic line-item table (populated by JS after Calculate) -->
-      <div id="line-items-table"></div>
 
       <!-- Scenario toggle -->
       <div class="scenario-toggle">
-        <button class="btn-scenario active" data-scenario="realistic" id="btn-realistic" disabled>Realistic</button>
-        <button class="btn-scenario" data-scenario="optimistic" id="btn-optimistic" disabled>Optimistic</button>
-        <button class="btn-scenario" data-scenario="pessimistic" id="btn-pessimistic" disabled>Pessimistic</button>
+        <button class="btn-scenario active" data-scenario="realistic" id="btn-realistic">Realistic</button>
+        <button class="btn-scenario" data-scenario="optimistic" id="btn-optimistic">Optimistic</button>
+        <button class="btn-scenario" data-scenario="pessimistic" id="btn-pessimistic">Pessimistic</button>
       </div>
 
       <!-- Chart -->
@@ -143,12 +156,16 @@
         annotated peak trough marks the maximum working capital the launch requires.
       </p>
 
-      <!-- Download -->
+      <!-- Dynamic line-item breakdown (populated by JS) -->
+      <h3 class="chart-title breakdown-title">Where the money goes — Year 1</h3>
+      <div id="line-items-table"></div>
+
+      <!-- Download / compare -->
       <div class="download-section">
         <button class="btn-download" id="download-btn" type="button">
           Download Excel Model
         </button>
-        <button class="btn-download" id="compare-btn" type="button" disabled>
+        <button class="btn-download" id="compare-btn" type="button">
           Compare Retailers
         </button>
         <span style="font-size:14px; color:var(--color-text-muted);">
@@ -287,6 +304,12 @@
         to roughly −$2,208, near breakeven, with the account cash-positive in
         steady state.
       </p>
+
+      <!-- CTA back to the live model -->
+      <div class="cs-cta">
+        <button type="button" class="btn-primary" id="cs-run-btn">Run your own numbers →</button>
+        <span style="font-size:14px; color:var(--color-text-muted);">Change the inputs and watch the financing need move.</span>
+      </div>
     </section>
 
   </div>
@@ -294,6 +317,6 @@
 </div>
 
 <script src="/plotly-basic.min.js"></script>
-<script src="/app.js?v=2"></script>
+<script src="/app.js?v=4"></script>
 </body>
 </html>

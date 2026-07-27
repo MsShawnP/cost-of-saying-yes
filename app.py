@@ -9,7 +9,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, field_validator, model_validator
-from model.calculator import calculate_all_scenarios, calculate_scenario
+from model.calculator import (
+    calculate_all_scenarios,
+    calculate_breakeven_velocity,
+    calculate_scenario,
+)
 from model.defaults import RETAILER_DEFAULTS, SCENARIO_MULTIPLIERS, WEEKS_PER_MONTH
 from model.excel import build_excel_workbook, workbook_to_bytes
 
@@ -331,6 +335,18 @@ def calculate(inp: ScenarioInput):
             data = asdict(result)
             data["line_items"] = compute_line_items(inp, scenario)
             response[scenario] = data
+        # Top-level sensitivity figure: lowest velocity at which the realistic
+        # scenario breaks even in Year 1 (None if it never does). Computed by the
+        # model, not hardcoded, so the frontend copy can't drift from the math.
+        response["breakeven_velocity"] = calculate_breakeven_velocity(
+            retailer=inp.retailer,
+            doors=inp.doors,
+            skus=inp.skus,
+            unit_price_wholesale=inp.unit_price_wholesale,
+            cogs_per_unit=inp.cogs_per_unit,
+            broker_projection_year1=inp.effective_broker_projection(),
+            scenario="realistic",
+        )
         return response
     except Exception:
         logger.exception("Calculation failed")

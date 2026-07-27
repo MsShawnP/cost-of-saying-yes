@@ -138,6 +138,56 @@ def calculate_scenario(
     )
 
 
+# Velocity ceiling for the breakeven search. Mirrors the upper bound enforced by
+# ScenarioInput.velocity_positive in app.py (velocity must be 1,000 or fewer).
+MAX_VELOCITY = 1000.0
+
+
+def calculate_breakeven_velocity(
+    retailer: str,
+    doors: int,
+    skus: int,
+    unit_price_wholesale: float,
+    cogs_per_unit: float,
+    broker_projection_year1: float,
+    scenario: str = "realistic",
+    max_velocity: float = MAX_VELOCITY,
+) -> float | None:
+    """Lowest velocity (all other inputs fixed) at which the scenario's Year-1 net
+    cash impact is >= 0.
+
+    Net cash is linear and non-decreasing in velocity, so a bisection converges.
+    Returns None if the launch never reaches breakeven at or below max_velocity.
+    """
+
+    def net_at(v: float) -> float:
+        return calculate_scenario(
+            retailer=retailer,
+            doors=doors,
+            skus=skus,
+            unit_price_wholesale=unit_price_wholesale,
+            cogs_per_unit=cogs_per_unit,
+            velocity_units_per_door_per_week=v,
+            broker_projection_year1=broker_projection_year1,
+            scenario=scenario,
+        ).summary["net_cash_impact_year1"]
+
+    # If even the maximum plausible velocity stays cash-negative, it never recovers.
+    if net_at(max_velocity) < 0:
+        return None
+
+    # Bisect for the crossover. lo stays below breakeven (velocity 0 is always
+    # cash-negative: no revenue, but upfront costs and ops overhead still flow out).
+    lo, hi = 0.0, max_velocity
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        if net_at(mid) >= 0:
+            hi = mid
+        else:
+            lo = mid
+    return round(hi, 2)
+
+
 def calculate_all_scenarios(
     retailer: str,
     doors: int,

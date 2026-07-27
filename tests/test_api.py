@@ -34,11 +34,21 @@ VALID_PAYLOAD = {
 class TestCalculateEndpoint:
 
     def test_returns_200_with_three_scenario_keys(self):
-        """Valid payload must return 200 with all three scenario results."""
+        """Valid payload must return 200 with all three scenarios plus the
+        top-level breakeven_velocity sensitivity figure."""
         response = client.post("/api/calculate", json=VALID_PAYLOAD)
         assert response.status_code == 200
         data = response.json()
-        assert set(data.keys()) == {"realistic", "optimistic", "pessimistic"}
+        assert set(data.keys()) == {
+            "realistic", "optimistic", "pessimistic", "breakeven_velocity",
+        }
+
+    def test_breakeven_velocity_pinned(self):
+        """Top-level breakeven_velocity must match the model — pins the sensitivity
+        copy against drift. Cinderhaven needs ~2.53 units/door/week to break even."""
+        response = client.post("/api/calculate", json=VALID_PAYLOAD)
+        assert response.status_code == 200
+        assert response.json()["breakeven_velocity"] == 2.53
 
     def test_each_scenario_has_12_month_cumulative(self):
         """Every scenario's cumulative_cash_position must be a 12-element list."""

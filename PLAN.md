@@ -21,6 +21,10 @@ When an arc completes, archive its goal, completion date, and outcome
 here. Then start a new arc above. Provides continuity without bloating
 the active plan.
 
+### 2026-07-27 — Verdict-first redesign + breakeven-velocity sensitivity (Arc 9)
+- Outcome: Live Model tab rewritten to be verdict-first — opens on a "Peak Financing Need vs Broker's Projection" hero card, pre-loads the Cinderhaven example, and recomputes on every input change (no Calculate button). New feature: server-computed breakeven velocity. `POST /api/calculate` now returns a top-level `breakeven_velocity` (lowest velocity at which the realistic scenario's Year-1 net cash ≥ 0, via bisection capped at the model's max velocity; null if it never recovers), rendered as a live one-line sensitivity note in the verdict section. Cinderhaven pins at 2.53 units/door/week (regression-tested at both the model and API layers). Python cash-flow model and formulas untouched. 74/74 tests (up from 66). Deployed.
+- Tag: n/a
+
 ### 2026-06-23 — Tab restructure + dynamic line-item table (Arc 8)
 - Outcome: Page restructured into "Your Model" / "Case Study" tabs. Dynamic line-item table renders user's cost decomposition after Calculate, updates on scenario switch. Source attribution updated for synthetic data disclosure. Case study table corrected (2 missing line items, wrong deduction amount, UNFI label). 66/66 tests (up from 64). Deployed.
 - Tag: n/a

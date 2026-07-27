@@ -6,7 +6,11 @@ Cash receipt is decoupled from invoice date — this is what creates the cash tr
 
 import pytest
 from pydantic import ValidationError
-from model.calculator import calculate_scenario, calculate_all_scenarios
+from model.calculator import (
+    calculate_scenario,
+    calculate_all_scenarios,
+    calculate_breakeven_velocity,
+)
 from model.defaults import RETAILER_DEFAULTS, SCENARIO_MULTIPLIERS
 from app import ScenarioInput
 from conftest import CINDERHAVEN_INPUTS
@@ -48,6 +52,48 @@ class TestCinderhavenRealistic:
         """Upfront costs mean the brand is immediately in the red."""
         result = calculate_scenario(**CINDERHAVEN_INPUTS, scenario="realistic")
         assert result.cumulative_cash_position[0] < 0
+
+
+# ---------------------------------------------------------------------------
+# Breakeven-velocity sensitivity
+# ---------------------------------------------------------------------------
+
+class TestBreakevenVelocity:
+    """Lowest velocity at which the realistic scenario nets >= 0 in Year 1."""
+
+    # Cinderhaven inputs minus velocity — the solver finds velocity itself.
+    _INPUTS = {k: v for k, v in CINDERHAVEN_INPUTS.items()
+               if k != "velocity_units_per_door_per_week"}
+
+    def test_cinderhaven_breakeven_velocity_pinned(self):
+        """Regression pin — keeps the frontend sensitivity copy from drifting.
+
+        At the current 2.0 velocity Cinderhaven nets -$36,320; it needs ~2.53
+        units/door/week to reach Year-1 breakeven.
+        """
+        be = calculate_breakeven_velocity(**self._INPUTS, scenario="realistic")
+        assert be == 2.53
+
+    def test_breakeven_velocity_is_a_true_crossover(self):
+        """Net cash flips from negative to non-negative across the returned value."""
+        be = calculate_breakeven_velocity(**self._INPUTS, scenario="realistic")
+        just_below = calculate_scenario(
+            **self._INPUTS, velocity_units_per_door_per_week=be - 0.1,
+            scenario="realistic",
+        ).summary["net_cash_impact_year1"]
+        just_above = calculate_scenario(
+            **self._INPUTS, velocity_units_per_door_per_week=be + 0.1,
+            scenario="realistic",
+        ).summary["net_cash_impact_year1"]
+        assert just_below < 0 < just_above
+
+    def test_returns_none_when_never_breaks_even(self):
+        """If COGS leaves no positive contribution, more velocity never recovers."""
+        inputs = dict(self._INPUTS)
+        inputs["cogs_per_unit"] = 0.999   # razor-thin margin, still < price
+        inputs["unit_price_wholesale"] = 1.00
+        be = calculate_breakeven_velocity(**inputs, scenario="realistic")
+        assert be is None
 
 
 # ---------------------------------------------------------------------------
