@@ -27,7 +27,11 @@ app = FastAPI(title="Retailer Launch Cost Model")
 
 # CORS — default restrictive; set ENVIRONMENT=development to open for local work
 environment = os.getenv("ENVIRONMENT", "production")
-allow_origins = ["https://cost-of-saying-yes.fly.dev"] if environment == "production" else ["*"]
+allow_origins = (
+    ["https://launch-cost.lailarallc.com", "https://cost-of-saying-yes.fly.dev"]
+    if environment == "production"
+    else ["*"]
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,13 +46,16 @@ async def security_headers(request: Request, call_next) -> Response:
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "script-src 'self' https://cdn.plot.ly; "
-        "style-src 'self' 'unsafe-inline'; "
+        "script-src 'self'; "          # Plotly is self-hosted (static/plotly-basic.min.js)
+        "style-src 'self' 'unsafe-inline'; "  # Plotly injects inline styles — required
         "font-src 'self'; "
         "connect-src 'self'; "
         "img-src 'self' data:; "
+        "base-uri 'none'; "
+        "object-src 'none'; "
         "frame-ancestors 'none'"
     )
     if request.url.path == "/api/download/excel":
@@ -56,8 +63,14 @@ async def security_headers(request: Request, call_next) -> Response:
     return response
 
 
-class ScenarioInput(BaseModel):
-    retailer: str = "walmart"
+class LaunchInputBase(BaseModel):
+    """Shared launch inputs and validators for both endpoints.
+
+    ScenarioInput (/api/calculate, /api/download/excel) and CompareInput
+    (/api/compare) subclass this so the two request contracts validate
+    identically and cannot drift. This supersedes the earlier decision to keep
+    the validators duplicated — see DECISIONS.md (2026-07-27).
+    """
     doors: int
     skus: int
     unit_price_wholesale: float
@@ -124,17 +137,11 @@ class ScenarioInput(BaseModel):
             raise ValueError("cogs_per_unit must be less than unit_price_wholesale")
         return self
 
-    @model_validator(mode="after")
-    def retailer_valid(self):
-        if self.retailer not in RETAILER_DEFAULTS:
-            raise ValueError(f"retailer must be one of {list(RETAILER_DEFAULTS.keys())}")
-        return self
-
     def effective_broker_projection(self) -> float:
         # When no broker figure is supplied, fall back to the model's OWN gross
         # revenue. This is not an independent projection — the UI labels the
-        # comparison "Modeled Gross Revenue" in that case (see updateComparisonPanel
-        # in static/app.js) so it is not passed off as a third-party number.
+        # comparison "Modeled Gross Revenue" in that case (see updateVerdict in
+        # static/app.js) so it is not passed off as a third-party number.
         if self.broker_projection_year1 is not None:
             return self.broker_projection_year1
         return (
@@ -145,6 +152,16 @@ class ScenarioInput(BaseModel):
             * 12
             * self.unit_price_wholesale
         )
+
+
+class ScenarioInput(LaunchInputBase):
+    retailer: str = "walmart"
+
+    @model_validator(mode="after")
+    def retailer_valid(self):
+        if self.retailer not in RETAILER_DEFAULTS:
+            raise ValueError(f"retailer must be one of {list(RETAILER_DEFAULTS.keys())}")
+        return self
 
 
 def compute_line_items(inp: ScenarioInput, scenario: str) -> list[dict]:
@@ -205,84 +222,10 @@ RETAILER_LABELS = {
 }
 
 
-class CompareInput(BaseModel):
-    doors: int
-    skus: int
-    unit_price_wholesale: float
-    cogs_per_unit: float
-    velocity_units_per_door_per_week: float
-    broker_projection_year1: float | None = None
-
-    @field_validator("doors")
-    @classmethod
-    def doors_positive(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError("doors must be greater than 0")
-        if v > 10_000:
-            raise ValueError("doors must be 10,000 or fewer")
-        return v
-
-    @field_validator("skus")
-    @classmethod
-    def skus_positive(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError("skus must be greater than 0")
-        if v > 100:
-            raise ValueError("skus must be 100 or fewer")
-        return v
-
-    @field_validator("velocity_units_per_door_per_week")
-    @classmethod
-    def velocity_positive(cls, v: float) -> float:
-        if not math.isfinite(v):
-            raise ValueError("velocity must be a finite number")
-        if v <= 0:
-            raise ValueError("velocity must be greater than 0")
-        if v > 1_000:
-            raise ValueError("velocity must be 1,000 or fewer")
-        return v
-
-    @field_validator("unit_price_wholesale", "cogs_per_unit")
-    @classmethod
-    def price_positive(cls, v: float) -> float:
-        if not math.isfinite(v):
-            raise ValueError("price fields must be finite numbers")
-        if v <= 0:
-            raise ValueError("price fields must be greater than 0")
-        if v > 10_000:
-            raise ValueError("price fields must be $10,000 or less")
-        return v
-
-    @field_validator("broker_projection_year1")
-    @classmethod
-    def broker_positive_if_set(cls, v: float | None) -> float | None:
-        if v is None:
-            return v
-        if not math.isfinite(v):
-            raise ValueError("broker_projection_year1 must be a finite number")
-        if v <= 0:
-            raise ValueError("broker_projection_year1 must be greater than 0")
-        if v > 50_000_000:
-            raise ValueError("broker_projection_year1 must be $50,000,000 or less")
-        return v
-
-    @model_validator(mode="after")
-    def cogs_less_than_price(self):
-        if self.cogs_per_unit >= self.unit_price_wholesale:
-            raise ValueError("cogs_per_unit must be less than unit_price_wholesale")
-        return self
-
-    def effective_broker_projection(self) -> float:
-        if self.broker_projection_year1 is not None:
-            return self.broker_projection_year1
-        return (
-            self.doors
-            * self.skus
-            * self.velocity_units_per_door_per_week
-            * WEEKS_PER_MONTH
-            * 12
-            * self.unit_price_wholesale
-        )
+class CompareInput(LaunchInputBase):
+    """/api/compare inputs — identical to the base; the compare endpoint iterates
+    every retailer internally, so it takes no `retailer` field."""
+    pass
 
 
 @app.post("/api/compare")

@@ -68,11 +68,21 @@ class TestBreakevenVelocity:
     def test_cinderhaven_breakeven_velocity_pinned(self):
         """Regression pin — keeps the frontend sensitivity copy from drifting.
 
-        At the current 2.0 velocity Cinderhaven nets -$36,320; it needs ~2.53
-        units/door/week to reach Year-1 breakeven.
+        At the current 2.0 velocity Cinderhaven nets -$36,320; it needs 2.54
+        units/door/week to reach Year-1 breakeven (2.53 still nets -$51, which is
+        why the solver rounds the crossover UP to the nearest cent).
         """
         be = calculate_breakeven_velocity(**self._INPUTS, scenario="realistic")
-        assert be == 2.53
+        assert be == 2.54
+
+    def test_reported_breakeven_actually_breaks_even(self):
+        """The reported velocity must itself net >= 0 — a breakeven that still loses
+        money would make the tool contradict itself."""
+        be = calculate_breakeven_velocity(**self._INPUTS, scenario="realistic")
+        net = calculate_scenario(
+            **self._INPUTS, velocity_units_per_door_per_week=be, scenario="realistic",
+        ).summary["net_cash_impact_year1"]
+        assert net >= 0
 
     def test_breakeven_velocity_is_a_true_crossover(self):
         """Net cash flips from negative to non-negative across the returned value."""

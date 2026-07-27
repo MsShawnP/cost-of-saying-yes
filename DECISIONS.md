@@ -85,10 +85,16 @@ Each entry:
 - **Scope:** All file export endpoints in this project.
 - **Do not:** Add `<a href="/api/download/...">` for any new file export. Always wire a button with a fetch handler.
 
-### 2026-05-27 — Copy Pydantic validators verbatim into independent input models
-- **Why:** `CompareInput` duplicates `ScenarioInput`'s field validators rather than sharing them via a base class or mixin. Keeping validation self-contained makes each model independently testable and avoids coupling two endpoints that may diverge over time.
-- **Scope:** Any new input model added to `app.py`.
-- **Do not:** Extract shared validators into a base class to reduce duplication — the isolation benefit outweighs the DRY cost here.
+### ~~2026-05-27 — Copy Pydantic validators verbatim into independent input models~~ (SUPERSEDED 2026-07-27)
+- ~~**Why:** `CompareInput` duplicates `ScenarioInput`'s field validators rather than sharing them via a base class or mixin. Keeping validation self-contained makes each model independently testable and avoids coupling two endpoints that may diverge over time.~~
+- ~~**Scope:** Any new input model added to `app.py`.~~
+- ~~**Do not:** Extract shared validators into a base class to reduce duplication — the isolation benefit outweighs the DRY cost here.~~
+- **Superseded by the 2026-07-27 entry below.** In practice the two models never diverged — they stayed byte-identical except `ScenarioInput.retailer` — so the duplication was pure drift risk (a bound tightened in one model but not the other) with no isolation benefit realized. Two independent code reviews flagged it.
+
+### 2026-07-27 — Share launch-input validators via a `LaunchInputBase` model
+- **Why:** Reverses the 2026-05-27 decision above. `ScenarioInput` and `CompareInput` now subclass `LaunchInputBase`, which holds the six shared fields and all their validators (`effective_broker_projection` included). `ScenarioInput` adds only `retailer` + `retailer_valid`; `CompareInput` adds nothing. Removes ~90 duplicated lines and makes it impossible for the two endpoints' input contracts to drift.
+- **Scope:** `app.py` input models.
+- **Do not:** Re-duplicate validators into a standalone model. If a field genuinely needs to differ between endpoints, override just that field/validator in the subclass — don't fork the whole model.
 
 ### 2026-05-27 — /api/compare runs realistic scenario only, sorted best-to-worst by net cash Y1
 - **Why:** A CFO scanning retailer options wants to see the most likely outcome, not optimistic/pessimistic variants — those belong in the per-retailer deep dive via `/api/calculate`. Sorting best-to-worst (highest `net_cash_impact_year1` first) surfaces the most favorable option immediately without requiring the reader to scan.
@@ -96,9 +102,10 @@ Each entry:
 - **Do not:** Add a `scenario` parameter to `/api/compare` — it would dilute the comparison's clarity. Do not sort ascending or alphabetically.
 
 ### 2026-05-28 — CSP allows unsafe-inline for styles because Plotly.js injects inline styles
-- **Why:** Plotly.js injects inline styles at render time. Removing `unsafe-inline` from `style-src` breaks the chart silently — no console error, just unstyled or non-rendering output. `script-src` is locked to `'self'` + `https://cdn.plot.ly` only; `unsafe-inline` is not allowed for scripts.
+- **Why:** Plotly.js injects inline styles at render time. Removing `unsafe-inline` from `style-src` breaks the chart silently — no console error, just unstyled or non-rendering output. `script-src` is locked to `'self'` only (see 2026-07-27 update); `unsafe-inline` is not allowed for scripts.
 - **Scope:** `app.py` `security_headers` middleware, `Content-Security-Policy` header.
 - **Do not:** Remove `'unsafe-inline'` from `style-src` to "tighten" the CSP without first verifying Plotly renders correctly in a browser. Do not add `'unsafe-inline'` to `script-src` — that would negate the XSS protection the CSP provides.
+- **Update 2026-07-27:** `script-src` tightened from `'self' https://cdn.plot.ly` to `'self'` — Plotly is self-hosted (`static/plotly-basic.min.js`), so the CDN allowance was dead. Also added `base-uri 'none'`, `object-src 'none'`, and a `Strict-Transport-Security` header (defense-in-depth hardening from the code review).
 
 ---
 

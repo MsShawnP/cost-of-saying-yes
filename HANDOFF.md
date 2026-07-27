@@ -347,3 +347,15 @@ work.
 **Next:** (none — feature complete; back to Arc 7 lead-gen when ready).
 
 ---
+
+## 2026-07-27 — Code-review sweep: all 8 findings fixed
+
+**What changed:** Re-ran /improve + code review + UI review on the shipped redesign, then fixed all 8 findings. Two were real bugs in the just-shipped feature: (1) `calculate_breakeven_velocity` rounded the crossover DOWN, reporting 2.53 where the model still nets −$51 — now ceils to the nearest cent (2.54, which nets +$633); (2) the live-recompute flow had a response race — a slow `/api/calculate` reply could overwrite a fresher one — now gated by a monotonic `calcSeq` id. Also: (3) `updateSensitivity` mis-branched on an empty velocity box (`x > NaN` is always false); (4) CSP tightened (`script-src 'self'`, dropped dead cdn.plot.ly, added base-uri/object-src) + HSTS header; (5) CORS allowlist adds launch-cost.lailarallc.com; (6) breakeven docstring corrected (affine, not monotonic); (7) dedup — `LaunchInputBase` shared model (−90 lines, reverses the 2026-05-27 keep-separate decision), shared `buildPayload`/`parseErrorDetail`/`timedFetch` JS helpers, and a line-items↔net-cash reconciliation guard test; (8) verdict placeholder copy aligned to the live text.
+
+**Why:** UI 30-second test now passes (the redesign fixed it); these were the correctness/robustness/hardening items the two reviewers surfaced. The breakeven rounding bug and the response race both undermined the "numbers you can trust" promise.
+
+**State:** 76/76 tests passing (was 74). All flows verified live in-browser — calculate/compare/download all 200, Plotly renders under tightened CSP, security headers confirmed, both sensitivity-note branches + the NaN branch correct. Committed on main. NOT yet deployed — live site still serves 2.53; needs `fly deploy` to correct it. DECISIONS.md updated for the two reversed decisions (validator dedup, CSP script-src).
+
+**Next:** `fly deploy` to push the breakeven fix (2.53→2.54) and hardening live, then verify.
+
+---

@@ -5,6 +5,7 @@ Invoice date is decoupled from cash receipt date. This creates the cash trough
 that makes the "yes to a major retailer" decision dangerous without a working capital plan.
 """
 
+import math
 from dataclasses import dataclass
 from model.defaults import RETAILER_DEFAULTS, SCENARIO_MULTIPLIERS, WEEKS_PER_MONTH
 
@@ -154,10 +155,16 @@ def calculate_breakeven_velocity(
     max_velocity: float = MAX_VELOCITY,
 ) -> float | None:
     """Lowest velocity (all other inputs fixed) at which the scenario's Year-1 net
-    cash impact is >= 0.
+    cash impact is >= 0, rounded UP to the nearest cent of velocity so the reported
+    figure itself clears breakeven. Returns None if the launch never recovers.
 
-    Net cash is linear and non-decreasing in velocity, so a bisection converges.
-    Returns None if the launch never reaches breakeven at or below max_velocity.
+    Correctness rests on two facts, not on monotonicity: net cash is AFFINE in
+    velocity (constant slope), and net_at(0) is always < 0 (velocity 0 means no
+    revenue, but upfront costs and ops overhead still flow out). So when the slope
+    is non-positive the launch is cash-negative everywhere and the max-velocity
+    guard returns None; when the slope is positive there is exactly one crossover,
+    which the bisection finds. Do NOT drop the None guard on the assumption that net
+    is monotonic — for thin margins the slope goes negative.
     """
 
     def net_at(v: float) -> float:
@@ -185,7 +192,11 @@ def calculate_breakeven_velocity(
             hi = mid
         else:
             lo = mid
-    return round(hi, 2)
+    # Round the crossover UP to the nearest cent of velocity. The bisection leaves
+    # `hi` fractionally above the true crossover; rounding to nearest could land a
+    # hair below it and report a velocity that still loses money. Ceil guarantees
+    # the reported figure nets >= 0.
+    return math.ceil(round(hi, 6) * 100) / 100
 
 
 def calculate_all_scenarios(

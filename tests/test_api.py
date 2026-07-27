@@ -45,10 +45,10 @@ class TestCalculateEndpoint:
 
     def test_breakeven_velocity_pinned(self):
         """Top-level breakeven_velocity must match the model — pins the sensitivity
-        copy against drift. Cinderhaven needs ~2.53 units/door/week to break even."""
+        copy against drift. Cinderhaven needs 2.54 units/door/week to break even."""
         response = client.post("/api/calculate", json=VALID_PAYLOAD)
         assert response.status_code == 200
-        assert response.json()["breakeven_velocity"] == 2.53
+        assert response.json()["breakeven_velocity"] == 2.54
 
     def test_each_scenario_has_12_month_cumulative(self):
         """Every scenario's cumulative_cash_position must be a 12-element list."""
@@ -65,6 +65,20 @@ class TestCalculateEndpoint:
         payload = {k: v for k, v in VALID_PAYLOAD.items() if k != "broker_projection_year1"}
         response = client.post("/api/calculate", json=payload)
         assert response.status_code == 200
+
+    def test_line_items_reconcile_to_net_cash(self):
+        """Drift guard: compute_line_items() re-derives the model's costs
+        independently. Its line items must sum to net_cash_impact_year1 for every
+        scenario — if they ever diverge, the breakdown table and the headline number
+        would silently contradict each other."""
+        data = client.post("/api/calculate", json=VALID_PAYLOAD).json()
+        for scenario in ("realistic", "optimistic", "pessimistic"):
+            items = data[scenario]["line_items"]
+            total = round(sum(i["amount"] for i in items), 2)
+            net = data[scenario]["summary"]["net_cash_impact_year1"]
+            assert abs(total - net) < 0.01, (
+                f"{scenario}: line items sum to {total}, net cash is {net}"
+            )
 
     def test_whole_foods_retailer_accepted(self):
         """whole_foods is a valid retailer key and must return 200."""

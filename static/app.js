@@ -8,6 +8,7 @@ let activeScenario = 'realistic';
 let brokerProvided = true;     // did the user enter a broker figure, or is the left column the modeled gross?
 let chartInitialized = false;       // tracks whether Plotly.newPlot has been called
 let resizeListenerAttached = false; // ensures the resize listener is added exactly once
+let calcSeq = 0;                    // monotonic id — drops stale /api/calculate responses
 
 // The Cinderhaven worked example — the tool loads pre-filled with this so it is
 // never an empty form. "Reset to example" restores it.
@@ -67,6 +68,40 @@ function setFieldError(fieldId, msg) {
 
 function clearFieldErrors() {
   document.querySelectorAll('.field-error').forEach(el => { el.textContent = ''; });
+}
+
+// ── Fetch helpers (shared by calculate / compare / download) ────────────────
+function buildPayload(v, { includeRetailer = true } = {}) {
+  const payload = {
+    doors: v.doors,
+    skus: v.skus,
+    unit_price_wholesale: v.price,
+    cogs_per_unit: v.cogs,
+    velocity_units_per_door_per_week: v.velocity,
+  };
+  if (includeRetailer) payload.retailer = v.retailer;
+  if (v.broker !== null) payload.broker_projection_year1 = v.broker;
+  return payload;
+}
+
+function parseErrorDetail(errBody, status) {
+  return Array.isArray(errBody.detail)
+    ? errBody.detail.map(d => d.msg).join('; ')
+    : (errBody.detail || `Server error (${status})`);
+}
+
+// POST JSON with a 30s abort timeout. Returns { promise, done }; call done() in a
+// finally block to clear the timer once the response body has been consumed.
+function timedFetch(url, payload) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+  const promise = fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal: controller.signal,
+  });
+  return { promise, done: () => clearTimeout(timeoutId) };
 }
 
 // ── Currency formatters ───────────────────────────────────────────────────
@@ -166,10 +201,18 @@ function updateSensitivity() {
   }
 
   const be = breakeven.toFixed(1);
-  const cur = Number.isFinite(current) ? current.toFixed(1) : be;
+
+  // If the velocity box is empty/non-numeric we can't compare against it — state
+  // the requirement without a bogus "current" figure. (Guarding the comparison
+  // matters: `breakeven > NaN` is always false, which would wrongly fall through
+  // to the "stays cash-positive" branch.)
+  if (!Number.isFinite(current)) {
+    el.textContent = `Needs ~${be} units/door/week to break even in Year 1.`;
+    return;
+  }
 
   el.textContent = breakeven > current
-    ? `Needs ~${be} units/door/week to break even in Year 1 — above the current ${cur} assumption.`
+    ? `Needs ~${be} units/door/week to break even in Year 1 — above the current ${current.toFixed(1)} assumption.`
     : `Stays cash-positive in Year 1 down to ~${be} units/door/week.`;
 }
 
@@ -363,33 +406,19 @@ async function runCalculation({ source }) {
   brokerProvided = inputs.broker !== null;
   setLive('calc');
 
-  const payload = {
-    retailer: inputs.retailer,
-    doors: inputs.doors,
-    skus: inputs.skus,
-    unit_price_wholesale: inputs.price,
-    cogs_per_unit: inputs.cogs,
-    velocity_units_per_door_per_week: inputs.velocity,
-  };
-  if (inputs.broker !== null) payload.broker_projection_year1 = inputs.broker;
-
-  const controller = new AbortController();
-  const timeoutId  = setTimeout(() => controller.abort(), 30_000);
+  const payload = buildPayload(inputs);
+  const seq = ++calcSeq;                 // this call's ticket
+  const req = timedFetch('/api/calculate', payload);
 
   try {
-    const res = await fetch('/api/calculate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
+    const res = await req.promise;
+    if (seq !== calcSeq) return;         // a newer request superseded this one
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      const detail = Array.isArray(err.detail)
-        ? err.detail.map(d => d.msg).join('; ')
-        : (err.detail || `Server error (${res.status})`);
-      if (res.status === 422) {         // input out of range — show it, stay live
+      if (seq !== calcSeq) return;
+      const detail = parseErrorDetail(err, res.status);
+      if (res.status === 422) {          // input out of range — show it, stay live
         errorEl.textContent = detail;
         setLive('live');
       } else if (silent) {
@@ -401,12 +430,15 @@ async function runCalculation({ source }) {
       return;
     }
 
-    currentData = await res.json();
+    const data = await res.json();
+    if (seq !== calcSeq) return;         // don't let a stale reply overwrite fresh state
+    currentData = data;
     document.getElementById('results-panel').classList.add('visible');
     await renderScenario(activeScenario);
     setLive('live');
 
   } catch (err) {
+    if (seq !== calcSeq) return;         // stale failure — a newer request owns the UI
     if (silent) {
       setLive('offline');
     } else {
@@ -416,7 +448,7 @@ async function runCalculation({ source }) {
       setLive('live');
     }
   } finally {
-    clearTimeout(timeoutId);
+    req.done();
   }
 }
 
@@ -530,44 +562,24 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
     if (btn.disabled) btn.textContent = 'Comparing… (first load may take a moment)';
   }, 2_000);
 
-  const payload = {
-    doors: v.doors, skus: v.skus,
-    unit_price_wholesale: v.price,
-    cogs_per_unit: v.cogs,
-    velocity_units_per_door_per_week: v.velocity,
-  };
-  if (v.broker !== null) payload.broker_projection_year1 = v.broker;
-
-  const controller = new AbortController();
-  const timeoutId  = setTimeout(() => controller.abort(), 30_000);
+  const payload = buildPayload(v, { includeRetailer: false });
+  const req = timedFetch('/api/compare', payload);
 
   try {
-    const res = await fetch('/api/compare', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-
+    const res = await req.promise;
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      const detail = Array.isArray(err.detail)
-        ? err.detail.map(d => d.msg).join('; ')
-        : (err.detail || `Server error (${res.status})`);
-      errorEl.textContent = detail;
+      errorEl.textContent = parseErrorDetail(err, res.status);
       return;
     }
-
     renderCompareTable(await res.json());
 
   } catch (err) {
-    if (err.name === 'AbortError') {
-      errorEl.textContent = 'Request timed out — please try again.';
-    } else {
-      errorEl.textContent = 'Network error — is the server running?';
-    }
+    errorEl.textContent = (err.name === 'AbortError')
+      ? 'Request timed out — please try again.'
+      : 'Network error — is the server running?';
   } finally {
-    clearTimeout(timeoutId);
+    req.done();
     clearTimeout(coldStartId);
     btn.disabled = false;
     btn.textContent = 'Compare Retailers';
@@ -593,31 +605,14 @@ document.getElementById('download-btn').addEventListener('click', async () => {
   btn.disabled = true;
   btn.textContent = 'Generating…';
 
-  const payload = {
-    retailer: v.retailer, doors: v.doors, skus: v.skus,
-    unit_price_wholesale: v.price,
-    cogs_per_unit: v.cogs,
-    velocity_units_per_door_per_week: v.velocity,
-  };
-  if (v.broker !== null) payload.broker_projection_year1 = v.broker;
-
-  const controller = new AbortController();
-  const timeoutId  = setTimeout(() => controller.abort(), 30_000);
+  const payload = buildPayload(v);
+  const req = timedFetch('/api/download/excel', payload);
 
   try {
-    const res = await fetch('/api/download/excel', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-
+    const res = await req.promise;
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      const detail = Array.isArray(err.detail)
-        ? err.detail.map(d => d.msg).join('; ')
-        : (err.detail || `Server error (${res.status})`);
-      errorEl.textContent = detail;
+      errorEl.textContent = parseErrorDetail(err, res.status);
       return;
     }
 
@@ -630,13 +625,11 @@ document.getElementById('download-btn').addEventListener('click', async () => {
     URL.revokeObjectURL(url);
 
   } catch (err) {
-    if (err.name === 'AbortError') {
-      errorEl.textContent = 'Request timed out — please try again.';
-    } else {
-      errorEl.textContent = 'Download failed — please try again.';
-    }
+    errorEl.textContent = (err.name === 'AbortError')
+      ? 'Request timed out — please try again.'
+      : 'Download failed — please try again.';
   } finally {
-    clearTimeout(timeoutId);
+    req.done();
     btn.disabled = false;
     btn.textContent = 'Download Excel Model';
   }
