@@ -263,10 +263,17 @@ function buildLayout(breakEvenMonth, troughMonth, troughValue) {
       x0: breakEvenMonth, x1: breakEvenMonth, y0: 0, y1: 1,
       line: { color: '#cc100a', width: 1.5, dash: 'dash' }
     });
+    // Caption is pinned to the top-left in PAPER coords, not to the break-even
+    // month's x. Anchoring it to the bar put it in the same strip of margin that
+    // bar labels spill into — it collided with the month-12 label on a late
+    // break-even, and running off the right edge needed its own guard. The red
+    // dashed line already shows where the crossing is; the caption only has to
+    // name the month, and it shares its color with the line.
     annotations.push({
-      x: breakEvenMonth, y: 1, xref: 'x', yref: 'paper',
+      x: 0, y: 1, xref: 'paper', yref: 'paper',
       text: `Break-even: Month ${breakEvenMonth}`,
-      showarrow: false, xanchor: 'left',
+      showarrow: false,
+      xanchor: 'left', yanchor: 'bottom', yshift: 2,
       font: { family: 'Source Sans 3, sans-serif', size: 12, color: '#cc100a' }
     });
   }
@@ -274,31 +281,29 @@ function buildLayout(breakEvenMonth, troughMonth, troughValue) {
   const hasTroughNote = troughValue !== undefined && troughMonth !== undefined && troughValue < 0;
 
   if (hasTroughNote) {
+    // Names the deepest bar. Deliberately carries NO figure — the bar already
+    // prints its own value, and the boxed callout this replaced repeated that
+    // number a third time (the verdict card states it too). Sits below the bar's
+    // own outside label, which is the only empty space around a negative bar.
     annotations.push({
       x: troughMonth, y: troughValue, xref: 'x', yref: 'y',
-      text: `Peak trough<br>${formatCurrency(troughValue)}`,
-      // Sits BELOW the trough point. Above it is where the point's own data label
-      // goes, and the area under the minimum is always empty.
-      showarrow: true, arrowhead: 2, arrowsize: 1, arrowwidth: 1.5,
-      arrowcolor: '#ffffff', ax: 40, ay: 56,
-      bgcolor: '#1a1a1a', bordercolor: 'rgba(255,255,255,0.12)',
-      font: { family: 'Source Sans 3, sans-serif', size: 12, color: '#ffffff' },
-      borderpad: 6
+      text: 'Peak trough',
+      showarrow: false, yshift: -68,
+      font: { family: 'Source Sans 3, sans-serif', size: 12, color: '#595959' },
     });
   }
 
   return {
     paper_bgcolor: '#f5f3ee',
     plot_bgcolor:  '#f5f3ee',
-    // Top margin clears the data labels, which sit above each point. Bottom margin
-    // widens when the trough callout is present — it hangs below the lowest point,
-    // so 48px of axis area isn't enough to hold it inside the chart.
-    margin: { t: 40, r: 24, b: hasTroughNote ? 96 : 48, l: 80 },
+    // Bottom margin holds the upright bar labels (~45px) plus, when present, the
+    // trough caption sitting below the deepest bar's label.
+    margin: { t: 40, r: 24, b: hasTroughNote ? 120 : 80, l: 80 },
     // NO `transition` here. A layout transition makes Plotly.react animate the
     // existing DOM instead of re-rendering it, and it silently skips structural
-    // updates: annotations keep their old text (the trough callout would show a
-    // stale figure next to fresh point labels) and point labels that were blank
-    // at a narrower width are never created. Correct numbers beat a 350ms ease.
+    // updates — annotations keep their old text, so the trough caption and the
+    // break-even marker would describe a chart the reader is no longer looking at.
+    // Correct numbers beat a 350ms ease.
     xaxis: {
       title: { text: 'Month', font: { family: 'Source Sans 3, sans-serif', size: 12 } },
       tickfont: { family: 'Source Sans 3, sans-serif', size: 12 },
@@ -321,19 +326,13 @@ function buildLayout(breakEvenMonth, troughMonth, troughValue) {
   };
 }
 
-// Every data point gets a text label — Lailara chart rule. Below ~560px of chart
-// width there is not room for twelve of them and they collide into an unreadable
-// smear, so label every third month plus the last one. The shape stays readable,
-// the endpoints stay exact, and hover still gives every month in full.
-function buildPointLabels(values) {
-  const el = document.getElementById('cashflow-chart');
-  const stride = (el && el.clientWidth >= 560) ? 1 : 3;
-  const last = values.length - 1;
-  return values.map((v, i) => (i % stride === 0 || i === last) ? formatCurrency(v) : '');
-}
-
 function renderChart(scenario) {
   const data = currentData[scenario];
+  // Vertical bars, the design system's default for a time series. Twelve bars
+  // each carry their own label with no stride rule and no exception to "every
+  // data point gets a text label" — a line chart could not fit twelve labels
+  // below ~560px without dropping some. Bars also read the trough as shape:
+  // the depth and the zero crossing are visible without reading the axis.
   const trace = {
     x: data.months,
     y: [...data.cumulative_cash_position],
@@ -342,17 +341,19 @@ function renderChart(scenario) {
       data.deductions[i],
       data.cash_received[i],
     ]),
-    type: 'scatter',
-    // Every data point gets a text label — Lailara chart rule, non-negotiable.
-    mode: 'lines+markers+text',
-    text: buildPointLabels(data.cumulative_cash_position),
-    textposition: 'top center',
+    type: 'bar',
+    text: data.cumulative_cash_position.map(v => formatCurrency(v)),
+    textposition: 'outside',
+    // Rotated upright and pinned at 11px. Plotly's default is to SHRINK outside
+    // bar text until it fits the bar width — at 375px that silently scaled these
+    // to ~5px, which reads as "no overlap" to a collision check and as nothing at
+    // all to a human. `constraintext: 'none'` disables the shrink; the rotation is
+    // what actually buys the room, at every width, with no label dropped.
+    textangle: -90,
+    constraintext: 'none',
     textfont: { family: 'Source Sans 3, sans-serif', size: 11, color: '#333333' },
     cliponaxis: false,
-    fill: 'tozeroy',
-    fillcolor: 'rgba(31, 46, 122, 0.08)',
-    marker: { color: '#1f2e7a', size: 5 },
-    line: { color: '#1f2e7a', width: 2.5 },
+    marker: { color: '#1f2e7a' },   // Chicago-20 — DS single-series color
     hovertemplate:
       'Month %{x}<br>' +
       'Gross revenue: %{customdata[0]:$,.0f}<br>' +
@@ -370,12 +371,7 @@ function renderChart(scenario) {
     plotPromise = Plotly.newPlot('cashflow-chart', [trace], layout, config);
     chartInitialized = true;
     if (!resizeListenerAttached) {
-      // Re-render before resizing: the label stride depends on chart width, and
-      // Plotly.Plots.resize alone reuses the trace text computed at the old width.
-      window.addEventListener('resize', debounce(() => {
-        if (!currentData) return;
-        renderChart(activeScenario).then(() => Plotly.Plots.resize('cashflow-chart'));
-      }, 150));
+      window.addEventListener('resize', () => Plotly.Plots.resize('cashflow-chart'));
       resizeListenerAttached = true;
     }
   } else {
