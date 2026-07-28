@@ -116,7 +116,40 @@ Each entry:
 
 ## Visualization
 
-[Chart conventions, palette decisions, interactivity choices]
+### 2026-07-28 — The cash-flow chart layout carries no `transition`
+- **Why:** A layout `transition` makes `Plotly.react` animate the existing DOM
+  instead of re-rendering it, and it silently skips structural updates. Annotations
+  keep their previous text and newly-required nodes are never created — so the
+  trough caption and the break-even marker describe a chart the reader is no longer
+  looking at, with no error anywhere. This shipped to production undocumented in
+  `3fafa25` and survived two code-review passes before being caught in `fafff5e`.
+  Trace values animate correctly throughout, which is precisely why it hides.
+- **Scope:** `static/app.js` `buildLayout()`. Applies to any future Plotly surface
+  in this project whose layout carries annotations or shapes.
+- **Do not:** Add `transition` back for polish. The 350ms ease is not worth a chart
+  that can display a stale figure. If animation is ever genuinely required, it must
+  be paired with an explicit `Plotly.relayout` of annotations after every `react`,
+  and with the render assertion in the solution doc wired into the `/qa` pass.
+- **See:** `docs/solutions/ui-bugs/plotly-silent-render-failures-2026-07-28.md`
+
+### 2026-07-28 — The cash-flow chart is vertical bars, and every bar is labeled
+- **Why:** The design system's default for a time series is a vertical bar chart,
+  and its chart rules make a per-point text label non-negotiable. A line chart
+  cannot fit twelve labels below ~560px of chart width; the attempt to keep one
+  produced a stride helper that silently dropped 7 of 12 labels on mobile — an
+  undocumented exception buried in a function. Bars remove the constraint instead
+  of working around it, and they read a trough better: depth and the zero crossing
+  are visible as shape without consulting the axis.
+- **Scope:** `static/app.js` `renderChart()`.
+- **Do not:** Reintroduce any rule that drops, stridess, or conditionally hides
+  labels. If labels stop fitting, change the rotation or the chart size — not the
+  number of labels. Do not remove `constraintext: 'none'`: Plotly's default shrinks
+  outside bar text to fit the bar, which at 375px scaled these to roughly 5px while
+  still passing a collision check. `textangle: -90` is what actually creates the
+  room; `constraintext` only stops Plotly from concealing the shortfall.
+- **Do not:** Anchor the break-even caption to the break-even month's x. It lands in
+  the strip of margin that bar labels spill into and collides on a late break-even.
+  It is pinned top-left in paper coordinates; the red dashed line carries position.
 
 ---
 
