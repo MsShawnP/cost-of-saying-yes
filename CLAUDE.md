@@ -221,3 +221,23 @@ don't repeat it in the same session.
 - Default to answering, not offering to answer
 
 Never write secrets, tokens, or passwords into tracked files, READMEs, or commit messages — use environment variables and secret stores only.
+
+## Serif display sizes — documented deviation
+
+`static/style.css` mostly uses the Lailara type-scale steps (`h1` 22px, `h2`
+22px, `.brand-name` 26px, `.cs-headline` 22px). The exceptions are deliberate
+and stay:
+
+| Selector | Size | Nearest DS token | Status |
+|---|---|---|---|
+| `.verdict-value` (:267) | `clamp(30px, 5.5vw, 46px)` | Headline number 64/44 | **Deviation.** Fluid rather than stepped, and capped at 46px so the verdict fits the dark card without wrapping. No token expresses a fluid range. |
+| `.comparison-value` (:443) | 48px | between Benchmark 28 and Headline 64 | **Deviation.** One tier below the verdict figure, above the benchmark value. |
+| `.cs-gap-value` (:598) | 48px | as above | **Deviation.** Same tier as `.comparison-value`, deliberately matched. |
+| `.controls-title` (:307) | 18px | Section title mobile 18px | **Deviation.** DS "card / sub-section head" 18–20 role. |
+| `.chart-title` (:393) | 18px | Chart title 22px / 18px mobile | **Deviation.** Applies the mobile step at all widths; the charts sit in a narrow column where 22px crowds the plot. |
+
+None of these declare mobile steps. The frame's `.ll-*` display classes are not
+available here — this tool does not vendor `lailara-frame.css`.
+
+Do not "fix" these to tokens mechanically. Revisit as a typography pass with the
+rendered page in front of you.
