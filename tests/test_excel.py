@@ -74,8 +74,8 @@ class TestSummarySheet:
         """When break_even_month is None, cell must contain the fallback string,
         not Python None (which would render as an empty cell in Excel).
 
-        Break-Even Month is row 8 in the Summary sheet:
-          Row 1 = header, Row 2 = Gross Revenue, ..., Row 8 = Break-Even Month.
+        Break-Even Month is row 10 in the Summary sheet:
+          Row 1 = header, Row 2 = Gross Revenue, ..., Row 10 = Break-Even Month.
         Column B = Realistic scenario.
         """
         # Deep-copy so we don't mutate the module-scoped fixture
@@ -85,7 +85,36 @@ class TestSummarySheet:
         test_wb = build_excel_workbook(modified)
         summary_ws = test_wb["Summary"]
 
-        assert summary_ws["B8"].value == "No break-even in 12 months"
+        assert summary_ws["B10"].value == "No break-even in 12 months"
+
+    def test_trough_rows_match_scenario_result(self, wb, scenarios):
+        """Peak Cash Trough (row 11) and Trough Month (row 12) come from the root of
+        the scenario result, not from `summary` — a wiring mistake there would write
+        the wrong metric silently. Columns B/C/D = realistic/optimistic/pessimistic.
+        """
+        summary_ws = wb["Summary"]
+        assert summary_ws["A11"].value == "Peak Cash Trough"
+        assert summary_ws["A12"].value == "Trough Month"
+        for col, scenario in (("B", "realistic"), ("C", "optimistic"), ("D", "pessimistic")):
+            assert summary_ws[f"{col}11"].value == scenarios[scenario]["trough_value"]
+            assert summary_ws[f"{col}12"].value == scenarios[scenario]["trough_month"]
+
+    def test_summary_subtraction_chain_foots(self, wb, scenarios):
+        """Drift guard, mirroring tests/test_api.py::test_line_items_reconcile_to_net_cash.
+
+        The Summary tab reads as a subtraction chain. Net Revenue plus the four
+        (already negative) cost rows below it must equal Net Cash Impact — Year 1.
+        If it doesn't, the tab quietly presents arithmetic that doesn't work in
+        front of a CFO. Rows: 4 = Net Revenue, 5 = Upfront, 6 = COGS,
+        7 = Ops Overhead, 8 = Uncollected, 9 = Net Cash Impact.
+        """
+        summary_ws = wb["Summary"]
+        for col in ("B", "C", "D"):
+            chain = sum(summary_ws[f"{col}{row}"].value for row in range(4, 9))
+            net = summary_ws[f"{col}9"].value
+            assert abs(chain - net) < 0.01, (
+                f"Column {col}: rows 4–8 sum to {chain}, Net Cash Impact is {net}"
+            )
 
 
 # ---------------------------------------------------------------------------

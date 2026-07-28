@@ -113,6 +113,11 @@ def calculate_scenario(
     total_deductions = sum(deductions_arr)
     net_revenue = gross_year1 - total_deductions
     cogs_year1 = units_per_month * cogs_per_unit * months_count
+    ops_overhead_year1 = ops_overhead * months_count
+    # The last `payment_lag` months are invoiced but not yet collected at the
+    # 12-month mark. This is the gap between the P&L (net revenue) and the cash
+    # position — without it the summary rows do not sum to net cash impact.
+    uncollected_at_year_end = sum(net_invoiced[max(0, months_count - payment_lag):])
     net_cash_impact = cumulative[-1]  # end-of-year position from zero (pre-launch costs included)
 
     summary = {
@@ -121,6 +126,8 @@ def calculate_scenario(
         "net_revenue_year1": round(net_revenue, 2),
         "upfront_investment": round(upfront_investment, 2),       # negative: already negative, abs() removed
         "cogs_year1": round(-cogs_year1, 2),                      # negative: cost rows render red in Excel
+        "ops_overhead_year1": round(-ops_overhead_year1, 2),      # negative: cost rows render red in Excel
+        "uncollected_at_year_end": round(-uncollected_at_year_end, 2),  # negative: reduces cash vs. P&L
         "net_cash_impact_year1": round(net_cash_impact, 2),
         "break_even_month": break_even_month,
         "broker_projection_year1": round(broker_projection_year1, 2),

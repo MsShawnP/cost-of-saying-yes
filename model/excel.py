@@ -21,8 +21,6 @@ from openpyxl.utils import get_column_letter
 # Lailara colors in aRGB (openpyxl expects AARRGGBB hex without #)
 NAVY       = "FF1F2E7A"   # Chicago navy
 WHITE      = "FFFFFFFF"
-CANVAS     = "FFF5F3EE"   # Lailara canvas
-LIGHT_GRAY = "FFE8E8E8"
 
 
 def _register_styles(wb: Workbook) -> None:
@@ -34,13 +32,6 @@ def _register_styles(wb: Workbook) -> None:
     header.fill = PatternFill(fill_type="solid", fgColor=NAVY)
     header.alignment = Alignment(horizontal="center", vertical="center")
     wb.add_named_style(header)
-
-    # Sub-header — light gray background
-    sub_header = NamedStyle(name="sub_header")
-    sub_header.font = Font(name="Source Sans 3", bold=True, size=11)
-    sub_header.fill = PatternFill(fill_type="solid", fgColor=LIGHT_GRAY)
-    sub_header.alignment = Alignment(horizontal="center")
-    wb.add_named_style(sub_header)
 
     # Currency — $#,##0
     currency = NamedStyle(name="currency")
@@ -88,9 +79,20 @@ def _set_print_settings(ws, last_row: int, last_col: int) -> None:
     ws.oddFooter.right.text = "Page &P of &N"
 
 
+def _metrics(scenario_data: dict) -> dict:
+    """Summary metrics plus the two trough fields, which sit at the root of the
+    scenario result rather than inside `summary`."""
+    return {
+        **scenario_data["summary"],
+        "trough_value": scenario_data["trough_value"],
+        "trough_month": scenario_data["trough_month"],
+    }
+
+
 def _build_summary_sheet(wb: Workbook, scenarios: dict) -> None:
     ws = wb.create_sheet("Summary")
     ws.freeze_panes = "A2"
+    ws.sheet_properties.tabColor = NAVY   # Summary is the tab a CFO opens first
 
     # Column widths
     ws.column_dimensions["A"].width = 34
@@ -108,26 +110,39 @@ def _build_summary_sheet(wb: Workbook, scenarios: dict) -> None:
     ws["D1"].value = "Pessimistic"
     ws["D1"].style = "header"
 
-    # Row definitions: (label, summary_key, style)
+    # Row definitions: (label, metric_key, style).
+    #
+    # Rows 2–9 are a subtraction chain that MUST foot: net revenue, less the
+    # upfront investment, COGS, ops overhead, and the receivable still uncollected
+    # at the 12-month mark, equals net cash impact. All cost values arrive already
+    # negated from calculator.py, so the chain is a plain sum. Do not add a cost
+    # row here without also adding it to the summary dict — a missing row makes the
+    # tab read as a subtraction that does not reconcile.
     rows = [
-        ("Gross Revenue — Year 1",     "gross_revenue_year1",    "currency"),
-        ("Total Deductions — Year 1",  "total_deductions_year1", "neg_currency"),
-        ("Net Revenue — Year 1",       "net_revenue_year1",      "currency"),
-        ("Upfront Investment",         "upfront_investment",     "neg_currency"),
-        ("COGS — Year 1",              "cogs_year1",             "neg_currency"),
-        ("Net Cash Impact — Year 1",   "net_cash_impact_year1",  "neg_currency"),
-        ("Break-Even Month",           "break_even_month",       "plain"),
-        ("Broker Projection Year 1",   "broker_projection_year1","currency"),
+        ("Gross Revenue — Year 1",                  "gross_revenue_year1",     "currency"),
+        ("Total Deductions — Year 1",               "total_deductions_year1",  "neg_currency"),
+        ("Net Revenue — Year 1",                    "net_revenue_year1",       "currency"),
+        ("Upfront Investment",                      "upfront_investment",      "neg_currency"),
+        ("COGS — Year 1",                           "cogs_year1",              "neg_currency"),
+        ("Ops Overhead — Year 1",                   "ops_overhead_year1",      "neg_currency"),
+        ("Uncollected at Year End (payment terms)", "uncollected_at_year_end", "neg_currency"),
+        ("Net Cash Impact — Year 1",                "net_cash_impact_year1",   "neg_currency"),
+        ("Break-Even Month",                        "break_even_month",        "plain"),
+        ("Peak Cash Trough",                        "trough_value",            "neg_currency"),
+        ("Trough Month",                            "trough_month",            "plain"),
+        ("Broker Projection Year 1",                "broker_projection_year1", "currency"),
     ]
+
+    metrics = {k: _metrics(v) for k, v in scenarios.items()}
 
     for row_idx, (label, key, style) in enumerate(rows, start=2):
         ws.cell(row_idx, 1).value = label
         ws.cell(row_idx, 1).style = "bold_plain"
         for col_idx, scenario_key in enumerate(["realistic", "optimistic", "pessimistic"], start=2):
-            val = scenarios[scenario_key]["summary"].get(key)
+            val = metrics[scenario_key][key]
             cell = ws.cell(row_idx, col_idx)
-            # break_even_month can be None
-            if val is None:
+            # break_even_month is the only metric that can legitimately be None
+            if key == "break_even_month" and val is None:
                 cell.value = "No break-even in 12 months"
                 cell.style = "plain"
             else:

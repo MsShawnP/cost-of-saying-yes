@@ -200,7 +200,11 @@ function updateSensitivity() {
     return;
   }
 
-  const be = breakeven.toFixed(1);
+  // Two decimals, matching the API. The model rounds the crossover UP to the
+  // nearest cent of velocity precisely so the reported figure itself nets >= 0 —
+  // re-rounding to one decimal here throws that away (2.54 -> "2.5", which nets
+  // -$2,104) and puts a velocity on screen that does not break even.
+  const be = breakeven.toFixed(2);
 
   // If the velocity box is empty/non-numeric we can't compare against it — state
   // the requirement without a bogus "current" figure. (Guarding the comparison
@@ -267,12 +271,16 @@ function buildLayout(breakEvenMonth, troughMonth, troughValue) {
     });
   }
 
-  if (troughValue !== undefined && troughMonth !== undefined && troughValue < 0) {
+  const hasTroughNote = troughValue !== undefined && troughMonth !== undefined && troughValue < 0;
+
+  if (hasTroughNote) {
     annotations.push({
       x: troughMonth, y: troughValue, xref: 'x', yref: 'y',
       text: `Peak trough<br>${formatCurrency(troughValue)}`,
+      // Sits BELOW the trough point. Above it is where the point's own data label
+      // goes, and the area under the minimum is always empty.
       showarrow: true, arrowhead: 2, arrowsize: 1, arrowwidth: 1.5,
-      arrowcolor: '#ffffff', ax: 40, ay: -40,
+      arrowcolor: '#ffffff', ax: 40, ay: 56,
       bgcolor: '#1a1a1a', bordercolor: 'rgba(255,255,255,0.12)',
       font: { family: 'Source Sans 3, sans-serif', size: 12, color: '#ffffff' },
       borderpad: 6
@@ -282,8 +290,15 @@ function buildLayout(breakEvenMonth, troughMonth, troughValue) {
   return {
     paper_bgcolor: '#f5f3ee',
     plot_bgcolor:  '#f5f3ee',
-    margin: { t: 24, r: 24, b: 48, l: 80 },
-    transition: { duration: 350, easing: 'cubic-in-out' },
+    // Top margin clears the data labels, which sit above each point. Bottom margin
+    // widens when the trough callout is present — it hangs below the lowest point,
+    // so 48px of axis area isn't enough to hold it inside the chart.
+    margin: { t: 40, r: 24, b: hasTroughNote ? 96 : 48, l: 80 },
+    // NO `transition` here. A layout transition makes Plotly.react animate the
+    // existing DOM instead of re-rendering it, and it silently skips structural
+    // updates: annotations keep their old text (the trough callout would show a
+    // stale figure next to fresh point labels) and point labels that were blank
+    // at a narrower width are never created. Correct numbers beat a 350ms ease.
     xaxis: {
       title: { text: 'Month', font: { family: 'Source Sans 3, sans-serif', size: 12 } },
       tickfont: { family: 'Source Sans 3, sans-serif', size: 12 },
@@ -306,6 +321,17 @@ function buildLayout(breakEvenMonth, troughMonth, troughValue) {
   };
 }
 
+// Every data point gets a text label — Lailara chart rule. Below ~560px of chart
+// width there is not room for twelve of them and they collide into an unreadable
+// smear, so label every third month plus the last one. The shape stays readable,
+// the endpoints stay exact, and hover still gives every month in full.
+function buildPointLabels(values) {
+  const el = document.getElementById('cashflow-chart');
+  const stride = (el && el.clientWidth >= 560) ? 1 : 3;
+  const last = values.length - 1;
+  return values.map((v, i) => (i % stride === 0 || i === last) ? formatCurrency(v) : '');
+}
+
 function renderChart(scenario) {
   const data = currentData[scenario];
   const trace = {
@@ -317,9 +343,15 @@ function renderChart(scenario) {
       data.cash_received[i],
     ]),
     type: 'scatter',
-    mode: 'lines',
+    // Every data point gets a text label — Lailara chart rule, non-negotiable.
+    mode: 'lines+markers+text',
+    text: buildPointLabels(data.cumulative_cash_position),
+    textposition: 'top center',
+    textfont: { family: 'Source Sans 3, sans-serif', size: 11, color: '#333333' },
+    cliponaxis: false,
     fill: 'tozeroy',
     fillcolor: 'rgba(31, 46, 122, 0.08)',
+    marker: { color: '#1f2e7a', size: 5 },
     line: { color: '#1f2e7a', width: 2.5 },
     hovertemplate:
       'Month %{x}<br>' +
@@ -338,7 +370,12 @@ function renderChart(scenario) {
     plotPromise = Plotly.newPlot('cashflow-chart', [trace], layout, config);
     chartInitialized = true;
     if (!resizeListenerAttached) {
-      window.addEventListener('resize', () => Plotly.Plots.resize('cashflow-chart'));
+      // Re-render before resizing: the label stride depends on chart width, and
+      // Plotly.Plots.resize alone reuses the trace text computed at the old width.
+      window.addEventListener('resize', debounce(() => {
+        if (!currentData) return;
+        renderChart(activeScenario).then(() => Plotly.Plots.resize('cashflow-chart'));
+      }, 150));
       resizeListenerAttached = true;
     }
   } else {

@@ -280,7 +280,7 @@ h2 {
   font-size: 17px;
   line-height: 1.6;
   color: var(--color-text);
-  max-width: 720px;
+  max-width: 660px;
   margin-top: 18px;
 }
 
@@ -291,7 +291,7 @@ h2 {
   font-size: 15px;
   line-height: 1.5;
   color: var(--color-text-muted);
-  max-width: 720px;
+  max-width: 660px;
   margin-top: 10px;
   padding-left: 12px;
   border-left: 2px solid var(--color-navy);
@@ -751,4 +751,58 @@ h2 {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* ── Print ─────────────────────────────────────────────────────
+   Lailara print rules: US Letter with 0.6in margins, white canvas
+   (the warm canvas is screen-only — paper provides its own warmth),
+   interactive elements hidden, tables never split across a page.
+   A CFO who prints the verdict should get the numbers, not the form. */
+@media print {
+  @page {
+    size: letter;
+    margin: 0.6in;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .container { max-width: none; padding: 0; }
+
+  /* Interactive chrome — nothing here means anything on paper. */
+  .page-tabs,
+  .controls-head,
+  #input-form,
+  .scenario-toggle,
+  .download-section,
+  .live-flag,
+  .btn-reset,
+  .btn-primary,
+  .cs-cta {
+    display: none !important;
+  }
+
+  /* The verdict card is a full inversion. Browsers strip backgrounds when
+     printing by default, which would leave white text on white paper. */
+  .verdict-card {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    break-inside: avoid;
+  }
+
+  /* Both tab panes print — the reader can't click to the other one. */
+  .tab-pane { display: block !important; }
+
+  .cs-table thead,
+  .compare-table thead { display: table-header-group; }
+
+  .cs-table tr,
+  .compare-table tr { break-inside: avoid; }
+
+  .compare-table-wrapper { overflow-x: visible; }
+
+  #verdict-section,
+  #cashflow-chart { break-inside: avoid; }
 }
