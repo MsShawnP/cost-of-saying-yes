@@ -101,6 +101,38 @@ Each entry:
 - **Scope:** `model/calculator.py` `calculate_breakeven_velocity` and any future "minimum X to reach non-negative Y" solver.
 - **Do not:** Switch back to `round()`/`floor` for the reported crossover. If precision changes, keep the round-UP direction and re-run the `net(breakeven) ≥ 0` test.
 
+### 2026-07-28 — The Excel Summary block is a subtraction chain and must foot
+- **Why:** Rows 4–9 read as a waterfall — Net Revenue less Upfront, COGS, Ops
+  Overhead, and the receivable still uncollected at the 12-month mark, equals Net
+  Cash Impact. A CFO will foot it, because that is the natural thing to do with a
+  column of signed figures. It shipped missing two rows and summed to +$36,576
+  against a stated −$36,320. The fix was to add the rows, not to relabel the block:
+  relabelling asks the reader not to do the obvious thing. The uncollected-receivable
+  row earns its place independently — roughly 94% of the Year-1 net is that timing
+  artifact, which is the model's most interesting finding and appeared nowhere in
+  the workbook before.
+- **Scope:** `model/excel.py` `_build_summary_sheet` and the summary dict in
+  `model/calculator.py`.
+- **Do not:** Add a cost line to the summary dict without adding a matching Summary
+  row, or vice versa. Pinned by `test_summary_subtraction_chain_foots`, which
+  mirrors `test_api.py::test_line_items_reconcile_to_net_cash` — if either
+  reconciliation test starts failing, the workbook is presenting arithmetic that
+  does not work in front of a CFO.
+
+### 2026-07-28 — The display layer prints model figures verbatim; it never re-rounds
+- **Why:** `calculate_breakeven_velocity` rounds the crossover UP to the cent
+  precisely so the reported figure itself nets ≥ 0. The frontend then applied
+  `toFixed(1)` and displayed 2.5 — a velocity at which the model loses $2,104 —
+  directly beneath a verdict saying the launch never turns cash-positive. Typing
+  2.5 into the box produced "needs ~2.5 … above the current 2.5 assumption." A
+  second rounding in the view silently discarded a guarantee the model was built
+  to provide.
+- **Scope:** `static/app.js` and any future view layer over this model. Applies to
+  every model-computed figure, not just breakeven.
+- **Do not:** Re-round, re-derive, or re-format a number's precision in the display
+  layer. If a figure needs different precision, change it where it is computed so
+  the guarantee and the display stay one thing.
+
 ### 2026-05-27 — /api/compare runs realistic scenario only, sorted best-to-worst by net cash Y1
 - **Why:** A CFO scanning retailer options wants to see the most likely outcome, not optimistic/pessimistic variants — those belong in the per-retailer deep dive via `/api/calculate`. Sorting best-to-worst (highest `net_cash_impact_year1` first) surfaces the most favorable option immediately without requiring the reader to scan.
 - **Scope:** `POST /api/compare` response shape and sort order.
@@ -155,7 +187,22 @@ Each entry:
 
 ## Output Formats
 
-[Decisions about deliverable formats, structure, organization]
+### 2026-07-28 — Solution docs in this repo omit the `component` frontmatter field
+- **Why:** The `ce-compound` schema's `component` enum is Rails-specific
+  (`rails_view`, `frontend_stimulus`, `hotwire_turbo`, `service_object`, …). This
+  project is FastAPI + vanilla JS with no Rails and no Stimulus. `frontend_stimulus`
+  is the closest value and is actively misleading — a future reader grepping for
+  Stimulus code would land on a Plotly bug. Omitting the field is honest; picking a
+  wrong value is not, and the first solution doc sets the pattern for every one
+  after it.
+- **Scope:** `docs/solutions/**` frontmatter. All other required schema fields are
+  still written.
+- **Do not:** Fill `component` with a plausible-looking Rails value to satisfy the
+  schema. Do not edit the schema in the plugin cache to fix it — that path is
+  overwritten on plugin update. If the enum should gain a `frontend_js` value, that
+  is an upstream change to the compound-engineering plugin.
+
+
 
 ---
 

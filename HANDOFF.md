@@ -487,3 +487,29 @@ in the solution doc is a manual `/qa` check — there is no JS test runner in th
 repo, so nothing in CI would catch a recurrence.
 
 ---
+
+## 2026-07-28 18:05 — Session wrap
+
+**Started from:** Tool complete and deployed at `35df123`, no active arc. A
+six-item Tier C finding list arrived covering the Excel Summary tab, a breakeven
+display bug, the chart, and four Lows.
+
+**Did:** Fixed all six findings and deployed. Found and fixed a pre-existing
+production bug the chart work exposed — a layout `transition` made `Plotly.react`
+animate instead of re-render, silently skipping annotation updates, live since
+`3fafa25` and never documented. Converted the chart from line to vertical bars,
+deleting a label-stride helper that dropped 7 of 12 labels on mobile. Ran
+`ce-compound` full mode: first `docs/solutions/` entry, `DECISIONS.md`
+Visualization filled, `CLAUDE.md` pointed at the store.
+
+**State:** 78/78 tests. `origin/main` at `c02af2b` before this wrap commit, tree
+clean. Deployed and verified on production — trace type `bar`, 12 labels at
+`scale 1.0`, zero overlaps, trough −$156,352, sensitivity 2.54. Summary tab foots
+across all three scenarios. Nothing broken, nothing half-done.
+
+**Next:** No open code work. Arc 7 (lead-gen) is the real next step and is the
+user's work, not Claude's. If code is wanted instead: the Case Study tab
+hardcodes Cinderhaven line items in HTML while the Live Model renders them from
+`compute_line_items` — those can drift, and nothing guards it.
+
+---

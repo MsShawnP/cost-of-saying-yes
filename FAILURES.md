@@ -155,6 +155,69 @@ quarto" or "scope, scrollytelling, decoration"]
 
 **Tags:** javascript, race-condition, debounce, fetch, live-recompute, state-management
 
+### 2026-07-28 — Bar chart "fixed" mobile labels by shrinking them to ~5px
+
+**Attempted:** Converting the cash-flow chart from a line to vertical bars so all
+twelve monthly labels would fit at 375px without a stride rule dropping any.
+
+**Why it didn't work:** It appeared to work. A bounding-box check reported twelve
+labels and zero overlaps at 343px chart width. Plotly had achieved that by
+scaling the text — `transform="… scale(0.4459…)"`, 11px declared and about 5px
+rendered. `constraintext` defaults to constraining outside bar text to the bar's
+own width, shrinking rather than overflowing. The verification method was the
+real failure: measuring position says nothing about legibility, so the check
+returned a true and useless answer.
+
+**What we tried instead:** `textangle: -90` to run the labels upright, which is
+what actually creates the room, plus `constraintext: 'none'` to stop Plotly
+concealing the shortfall. Verified by asserting no label had a `scale()` below
+0.95, not just that none overlapped.
+
+**Status:** Resolved
+
+**Tags:** plotly, bar-chart, text-labels, constraintext, mobile, verification,
+false-negative, silent-failure
+
+### 2026-07-28 — Tested Plotly.react by handing it back Plotly's own object
+
+**Attempted:** Checking whether `Plotly.react` was responsible for missing point
+labels, via `Plotly.react(gd, [gd.data[0]], gd.layout, config)` in the console.
+
+**Why it didn't work:** `gd.data[0]` is the object Plotly already holds. `react`
+diffs incoming against stored, sees the same reference with identical contents,
+and correctly no-ops. Nothing broke, so the test read as a pass — but a healthy
+and a broken `react` produce identical results under it. Any diff-based renderer
+is untestable via its own state.
+
+**What we tried instead:** Built a genuinely new object graph —
+`{ ...gd.data[0], text: [...gd.data[0].text] }` with a deep-copied layout — which
+immediately isolated the real cause (the layout `transition`).
+
+**Status:** Resolved
+
+**Tags:** plotly, plotly-react, debugging, invalid-test, reference-equality,
+diffing
+
+### 2026-07-28 — Three failed placements for the chart's trough and break-even captions
+
+**Attempted:** Positioning the "Peak trough" and "Break-even: Month N" annotations
+around bars that carry their own outside labels.
+
+**Why it didn't work:** Each placement collided with something. Below the trough
+point — collided with that point's own label. `ay: 56` — pushed the callout past
+the chart's bottom edge. Break-even anchored to its month's x — landed in the
+strip of margin that bar labels spill into, colliding with the month-12 label on a
+late break-even, and needed a separate guard to avoid running off the right edge.
+
+**What we tried instead:** Trough caption `yshift: -68`, below the bar's own
+label, carrying no figure (the bar prints its value and the verdict card states
+it again). Break-even caption pinned top-left in paper coordinates, decoupled from
+the data entirely — the red dashed line already shows where the crossing is.
+
+**Status:** Resolved
+
+**Tags:** plotly, annotations, layout, collision, bar-chart, responsive
+
 ### 2026-06-23 — FastAPI StaticFiles caches stale CSS and JS during development
 
 **Attempted:** Rewrote `static/style.css` (added tab rules) and `static/app.js` (added `renderLineItems`, tab switching, `formatTableCurrency`). Expected the preview server to serve the updated files.

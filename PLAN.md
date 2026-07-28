@@ -21,6 +21,25 @@ When an arc completes, archive its goal, completion date, and outcome
 here. Then start a new arc above. Provides continuity without bloating
 the active plan.
 
+### 2026-07-28 — Tier C findings + chart to bars + first solution doc (Arc 10)
+- Outcome: All six Tier C findings closed and deployed. Excel Summary tab now foots
+  as a subtraction chain (added Ops Overhead — Year 1 and Uncollected at Year End,
+  the latter carrying ~94% of the Year-1 net) and gained Peak Cash Trough / Trough
+  Month rows, guarded by a reconciliation test mirroring the API-side one. Breakeven
+  display fixed from `toFixed(1)` to `toFixed(2)` — 2.5 was a velocity that loses
+  $2,104. Cash-flow chart converted from line to vertical bars, deleting a stride
+  helper that silently dropped 7 of 12 labels on mobile; `textangle: -90` plus
+  `constraintext: 'none'` keeps every label full-size at every width. Along the way,
+  found and fixed a pre-existing production bug: a layout `transition` made
+  `Plotly.react` animate instead of re-render, silently skipping annotation updates
+  — live since `3fafa25`, undocumented, survived two review passes. Lows: Summary
+  tab color, dead style/constant deletion, body text 720px → 660px, and the
+  `@media print` block the stylesheet never had. Repo's first `docs/solutions/`
+  entry written, `DECISIONS.md` Visualization section filled, `CLAUDE.md` now points
+  at the knowledge store. 78/78 tests (up from 76). Deployed and verified on
+  production.
+- Tag: n/a
+
 ### 2026-07-27 — Verdict-first redesign + breakeven-velocity sensitivity (Arc 9)
 - Outcome: Live Model tab rewritten to be verdict-first — opens on a "Peak Financing Need vs Broker's Projection" hero card, pre-loads the Cinderhaven example, and recomputes on every input change (no Calculate button). New feature: server-computed breakeven velocity. `POST /api/calculate` now returns a top-level `breakeven_velocity` (lowest velocity at which the realistic scenario's Year-1 net cash ≥ 0, via bisection capped at the model's max velocity; null if it never recovers), rendered as a live one-line sensitivity note in the verdict section. Cinderhaven pins at 2.53 units/door/week (regression-tested at both the model and API layers). Python cash-flow model and formulas untouched. 74/74 tests (up from 66). Deployed.
 - Tag: n/a
