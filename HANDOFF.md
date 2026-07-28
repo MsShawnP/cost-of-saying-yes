@@ -427,4 +427,63 @@ for a future session: `.cs-table` markup on the Case Study tab hardcodes the
 Cinderhaven line items in HTML while the Live Model tab renders them from
 `compute_line_items` — the two could drift.
 
+> **Superseded below (same day).** The chart described in this entry as a line
+> chart with per-point labels and a width-dependent label stride was replaced by
+> a vertical bar chart later the same session. See the 2026-07-28 bar-chart entry.
+
+---
+
+## 2026-07-28 — Chart to bars; first solution doc; all Tier C work live
+
+**What changed:** Three commits after the Tier C fixes, all now deployed.
+
+**1. Cash-flow chart converted to vertical bars (`8e76a91`).** The earlier entry's
+line chart carried per-point labels via a `buildPointLabels()` stride helper that
+dropped 7 of 12 labels below ~560px — an undocumented exception to the design
+system's "every data point gets a text label" rule, hidden inside a function.
+Bars are the DS default for a time series and remove the constraint instead of
+working around it. `buildPointLabels()` and the width-dependent resize re-render
+are both gone; the resize handler is back to a plain `Plots.resize`.
+
+**The non-obvious part:** bars did **not** fix mobile for free. At 375px Plotly
+rendered all 12 labels with zero overlaps — by scaling them to `scale(0.446)`,
+roughly 5px. The bounding-box collision check reported clean. It was measuring
+position and saying nothing about legibility. `textangle: -90` is what actually
+creates the room; `constraintext: 'none'` only stops Plotly from concealing the
+shortfall by shrinking. Do not remove either.
+
+Two knock-on fixes the conversion forced: the boxed trough callout became a plain
+"Peak trough" caption (the box repeated a figure the bar now prints itself, and
+the verdict card states it a third time), and the break-even caption moved to
+paper coordinates after it collided with the month-12 label on a late break-even.
+
+**2. First `docs/solutions/` entry (`b04d332`).** `ce-compound` full run —
+`docs/solutions/ui-bugs/plotly-silent-render-failures-2026-07-28.md`. Covers both
+Plotly defects (the `transition`-skips-structural-updates bug and the text-shrink
+trap) plus two investigation traps: you cannot test a diff-based renderer by
+handing it back its own object, and a geometric assertion says nothing about
+legibility. `DECISIONS.md` Visualization was an empty placeholder and now holds
+two entries with explicit Do-nots, written in the same commit as the doc.
+
+The `component` frontmatter field is deliberately omitted — the ce-compound enum
+is Rails-specific and `frontend_stimulus` would have been misleading in this
+repo's first solution doc. Reasoned in a note at the foot of the doc. The schema
+lives in the plugin cache and is overwritten on update, so fixing the enum
+properly is an upstream change.
+
+**3. `CLAUDE.md` now points at `docs/solutions/` (`823c47e`).**
+
+**State:** 78/78 tests. `origin/main` at `823c47e`, working tree clean, deployed
+and verified on production — trace type `bar`, 12 bars, 12 labels at `scale 1.0`,
+zero overlaps, nothing out of bounds, trough −$156,352, sensitivity 2.54. Verified
+by measuring rendered node geometry across velocity 2.0 / 2.6 / 4.0 / 12.0 and all
+three scenarios at 1440px and 375px, not by eye.
+
+**Next:** No open code work; every Tier C finding is closed and live. Arc 7
+(lead-gen) remains the real next step. Two things a future session should know:
+the Case Study tab's hardcoded `.cs-table` markup can still drift from
+`compute_line_items` (unchanged from the entry above), and the render assertion
+in the solution doc is a manual `/qa` check — there is no JS test runner in this
+repo, so nothing in CI would catch a recurrence.
+
 ---
