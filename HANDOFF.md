@@ -371,3 +371,60 @@ work.
 **Next:** Code done and shipped. Real next work is Arc 7 — lead-gen push (LinkedIn + operator outreach), no code. Optional follow-up: true single-sourcing of `compute_line_items` (currently a reconciliation-test guard, not a rewrite).
 
 ---
+
+## 2026-07-28 — Tier C review: 6 findings fixed, deployed
+
+**What changed:** Worked a 6-item Tier C finding list end to end.
+
+1. **Critical — the Excel Summary tab did not foot.** It reads as a subtraction
+   chain but was missing two rows entirely: Ops Overhead — Year 1 ($38,784) and
+   Uncollected at Year End ($34,112). Net Revenue less Upfront less COGS came to
+   **+$36,576** against a stated **−$36,320**. Both figures are now computed in
+   `calculator.py` (`ops_overhead_year1`, `uncollected_at_year_end`, negated per
+   the cost-row convention) and rendered between COGS and Net Cash Impact.
+2. **High — `app.js` re-rounded the breakeven with `toFixed(1)`**, displaying
+   "2.5" where the API returns 2.54. 2.5 nets −$2,104 — it threw away the exact
+   guarantee the `math.ceil` in `calculate_breakeven_velocity` exists to provide.
+   Now `toFixed(2)`.
+3. **Medium — cash-flow chart had no data labels** (Lailara rule: every data
+   point gets one). Added `lines+markers+text`.
+4. **Medium — Summary tab gains Peak Cash Trough and Trough Month rows**, read
+   from the root of the scenario result via a new `_metrics()` helper. The None
+   fallback is now keyed to `break_even_month` instead of firing on any None
+   (with more rows, a missing key would have silently printed "No break-even in
+   12 months" in a currency cell).
+5. **Low — Summary sheet tab colored Chicago navy**; deleted the unused `CANVAS`
+   constant and the registered-but-never-applied `sub_header` style (and
+   `LIGHT_GRAY`, which only `sub_header` used).
+6. **Low — body text capped at the DS 660px** (was 720px in two places) and the
+   `@media print` block the file never had: US Letter at 0.6in, white canvas,
+   interactive chrome hidden, both tab panes printed, repeating table headers,
+   `print-color-adjust` on the verdict card so its inverted panel doesn't print
+   white-on-white.
+
+**Why the chart work grew:** verifying finding 3 surfaced two problems. Twelve
+labels collide below ~560px of chart width, so `buildPointLabels()` drops to
+every third month plus the last on narrow viewports and the resize listener now
+re-renders instead of only calling `Plots.resize` (the stride depends on width).
+More seriously, the layout `transition` made `Plotly.react` **animate instead of
+re-render, silently skipping structural updates** — annotations kept their old
+text, so the trough callout showed a stale figure and the break-even marker
+never appeared on live recompute. Pre-existing since the verdict-first redesign,
+but the new labels put the stale number right next to the fresh one. Removed the
+transition (cost: the 350ms ease between scenario switches). Also moved the
+trough callout below its point — above is where the point's own label goes.
+
+**State:** 78/78 tests (was 76). Two new Excel tests: a Summary-chain
+reconciliation guard mirroring `test_api.py::test_line_items_reconcile_to_net_cash`,
+and a trough-row wiring test. `origin/main` at `fafff5e`. Deployed and verified
+live: `breakeven_velocity` 2.54, trough −156,352 at month 1, Summary tab foots
+for all three scenarios, `app.js?v=10` / `style.css?v=4` serving from the edge.
+Layout measured in-browser — 12 labels with zero overlaps at 1440px, 5 at 375px,
+annotations track scenario switches and the resize round-trip.
+
+**Next:** No open code work. Arc 7 (lead-gen) is still the real next step. Note
+for a future session: `.cs-table` markup on the Case Study tab hardcodes the
+Cinderhaven line items in HTML while the Live Model tab renders them from
+`compute_line_items` — the two could drift.
+
+---
