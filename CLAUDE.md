@@ -22,6 +22,9 @@ A CFO-credible interactive tool that models the actual first-year economics of a
 - HANDOFF.md — current session state
 - PLAN.md — current work arc
 - FAILURES.md — things tried that didn't work
+- docs/solutions/ — documented solutions to past problems, organized by
+  category with YAML frontmatter (module, tags, problem_type). Relevant when
+  implementing or debugging in a documented area.
 
 Read PLAN.md and HANDOFF.md at session start. DECISIONS.md and
 FAILURES.md as relevant.
