@@ -111,7 +111,7 @@ h2 {
 .section-intro {
   font-size: 17px;
   color: var(--color-text-muted);
-  max-width: 660px;
+  max-width: var(--ll-body-max-width, 720px);
   margin-bottom: 32px;
   line-height: 1.6;
 }
@@ -280,7 +280,7 @@ h2 {
   font-size: 17px;
   line-height: 1.6;
   color: var(--color-text);
-  max-width: 660px;
+  max-width: var(--ll-body-max-width, 720px);
   margin-top: 18px;
 }
 
@@ -291,7 +291,7 @@ h2 {
   font-size: 15px;
   line-height: 1.5;
   color: var(--color-text-muted);
-  max-width: 660px;
+  max-width: var(--ll-body-max-width, 720px);
   margin-top: 10px;
   padding-left: 12px;
   border-left: 2px solid var(--color-navy);
@@ -313,7 +313,7 @@ h2 {
 .controls-note {
   font-size: 14px;
   color: var(--color-text-muted);
-  max-width: 660px;
+  max-width: var(--ll-body-max-width, 720px);
 }
 
 .controls-actions {
@@ -556,7 +556,7 @@ h2 {
 .cs-setup {
   font-size: 17px;
   color: var(--color-text-muted);
-  max-width: 660px;
+  max-width: var(--ll-body-max-width, 720px);
   line-height: 1.6;
   margin-bottom: 32px;
 }
@@ -729,7 +729,7 @@ h2 {
   font-size: 17px;
   line-height: 1.6;
   color: var(--color-text);
-  max-width: 660px;
+  max-width: var(--ll-body-max-width, 720px);
   border-left: 3px solid var(--color-gridline);
   padding-left: 16px;
   margin-top: 16px;
