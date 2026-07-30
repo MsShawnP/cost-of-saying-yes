@@ -766,7 +766,7 @@ h2 {
 
   body {
     background: #fff;
-    color: #000;
+    color: #0d0d0d;  /* London-5 ink */
   }
 
   .container { max-width: none; padding: 0; }
