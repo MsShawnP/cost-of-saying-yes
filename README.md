@@ -61,7 +61,7 @@ tests/            pytest suite: calculator, Excel export, API
 
 ## Data contract
 
-**Cinderhaven canonical dataset:** 50 SKUs / 5 production lines / 6 retailers.
+**Cinderhaven canonical dataset:** 50 SKUs / 5 product lines / 6 retailers.
 **Scope:** This is a generic launch economics model. The Cinderhaven case study uses a 4-SKU launch subset, not the full 50-SKU catalog. Audits should not flag the narrower SKU count as data drift.
 
 ## License

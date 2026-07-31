@@ -211,13 +211,13 @@ function updateSensitivity() {
   // matters: `breakeven > NaN` is always false, which would wrongly fall through
   // to the "stays cash-positive" branch.)
   if (!Number.isFinite(current)) {
-    el.textContent = `Needs ~${be} units/door/week to break even in Year 1.`;
+    el.textContent = `Needs ~${be} units/SKU/door/week to break even in Year 1.`;
     return;
   }
 
   el.textContent = breakeven > current
-    ? `Needs ~${be} units/door/week to break even in Year 1 — above the current ${current.toFixed(1)} assumption.`
-    : `Stays cash-positive in Year 1 down to ~${be} units/door/week.`;
+    ? `Needs ~${be} units/SKU/door/week to break even in Year 1 — above the current ${current.toFixed(1)} assumption.`
+    : `Stays cash-positive in Year 1 down to ~${be} units/SKU/door/week.`;
 }
 
 // ── Dynamic line-item table ───────────────────────────────────────────────
