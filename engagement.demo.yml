@@ -1,0 +1,17 @@
+# Demo engagement config (safe to deploy: demo: true).
+client:
+  name: "Cinderhaven Provisions (demo)"
+engagement:
+  id: "DEMO-COST-001"
+as_of_date: "2026-01-31"
+prepared_by: "Lailara LLC"
+demo: true
+# Deal parameters (this tool is parameter-driven — no client data file).
+deal:
+  retailer: walmart
+  doors: 1200
+  skus: 4
+  unit_price_wholesale: 1.00
+  cogs_per_unit: 0.45
+  velocity_units_per_sku_per_door_per_week: 2.0
+  broker_projection_year1: 499200
