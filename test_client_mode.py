@@ -46,6 +46,19 @@ def test_report_is_branded_and_provenance_footed(cfg, tmp_path):
     assert "per SKU per door" in html  # basis printed with the number
 
 
+def test_basis_label_pins_the_velocity_unit_basis(cfg, tmp_path):
+    """This money tool renders a FIXED basis (velocity per SKU per door per week)
+    over its definitional first-12-months horizon — there is no data-dependent
+    window to track. The label-text convention here pins the COMPLETE basis
+    string; the branding test asserts only 'per SKU per door', which a silent
+    edit dropping 'the model multiplies by doors × SKUs' (the clause that makes
+    the unit→total scaling explicit) would pass while obscuring what the money
+    figure counts."""
+    result = client_mode.run(cfg, str(tmp_path / "out"))
+    html = open(result["report"], encoding="utf-8").read()
+    assert "velocity is per SKU per door per week; the model multiplies by doors × SKUs" in html
+
+
 def test_missing_deal_param_raises(tmp_path):
     bad = tmp_path / "e.yml"
     bad.write_text(
