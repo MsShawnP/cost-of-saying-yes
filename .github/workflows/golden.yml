@@ -1,0 +1,26 @@
+name: golden
+
+# Gates the demo golden lock: pins the canonical Cinderhaven Walmart scenario so
+# the deployed demo numbers cannot drift during the client-mode conversion. Runs
+# ONLY the golden (test_golden.py) against the real calculator engine — base deps
+# only (pytest + stdlib), never lailara_engagement.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  golden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test deps
+        run: pip install -r requirements-dev.txt
+      - name: Demo golden lock
+        run: python -m pytest test_golden.py -q
